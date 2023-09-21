@@ -1,0 +1,215 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/Users/arthu/epfl/ba2/cs173/cs173-series/TP5/template/modelsim
+Eadder_combinatorial
+Z0 w1695201418
+Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z2 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+Z3 dC:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/modelsim
+Z4 8C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_combinatorial.vhd
+Z5 FC:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_combinatorial.vhd
+l0
+L14
+V<B4Mj_AHM5m6^X^]Pe<>31
+!s100 V9QhLegaa3z7Im<jz_bHN3
+Z6 OV;C;10.5b;63
+32
+Z7 !s110 1695204449
+!i10b 1
+Z8 !s108 1695204449.000000
+Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_combinatorial.vhd|
+Z10 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_combinatorial.vhd|
+!i113 1
+Z11 o-work work -2002 -explicit
+Z12 tExplicit 1 CvgOpt 0
+Aripple_carry
+Z13 DEx4 work 10 full_adder 0 22 [X`[ROAfSboG`?0Jnb>T]0
+R1
+R2
+Z14 DEx4 work 19 adder_combinatorial 0 22 <B4Mj_AHM5m6^X^]Pe<>31
+l29
+L25
+VG5M:UP2?aolidlSo?3NNL2
+!s100 6LzoScR^>K77ZGZc@;__c2
+R6
+32
+R7
+!i10b 1
+R8
+R9
+R10
+!i113 1
+R11
+R12
+Eadder_sequential
+R0
+Z15 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
+R1
+R2
+R3
+Z16 8C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_sequential.vhd
+Z17 FC:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_sequential.vhd
+l0
+L15
+VHANmF1IfUlYJM07FGYG1<3
+!s100 85[Yjh9bz48EVMgVl197?1
+R6
+32
+R7
+!i10b 1
+R8
+Z18 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_sequential.vhd|
+Z19 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/adder_sequential.vhd|
+!i113 1
+R11
+R12
+Artl
+R13
+R15
+R1
+R2
+Z20 DEx4 work 16 adder_sequential 0 22 HANmF1IfUlYJM07FGYG1<3
+l58
+L30
+VVzDXWFb`5eRkfGI3IE]@A2
+!s100 elo8QC3hJLWhWL3?df^Hn0
+R6
+32
+R7
+!i10b 1
+R8
+R18
+R19
+!i113 1
+R11
+R12
+Efull_adder
+R0
+R1
+R2
+R3
+Z21 8C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/full_adder.vhd
+Z22 FC:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/full_adder.vhd
+l0
+L14
+V[X`[ROAfSboG`?0Jnb>T]0
+!s100 g2N3@Jko[H9l<CQ9d3AKd1
+R6
+32
+R7
+!i10b 1
+R8
+Z23 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/full_adder.vhd|
+Z24 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/vhdl/full_adder.vhd|
+!i113 1
+R11
+R12
+Artl
+R1
+R2
+R13
+l25
+L24
+V3Mj6kY=4NVd3?_4nZFY4C2
+!s100 bOI^YdjMcWok`9F_JW6Ta1
+R6
+32
+R7
+!i10b 1
+R8
+R23
+R24
+!i113 1
+R11
+R12
+Etb_adder_combinatorial
+Z25 w1695204905
+R15
+R1
+R2
+R3
+Z26 8C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_combinatorial.vhd
+Z27 FC:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_combinatorial.vhd
+l0
+L5
+V<?4F=1a98bn1h0QHB25a;3
+!s100 9f^fdQe^Zc0mFWHd?=5Uh3
+R6
+32
+Z28 !s110 1695204918
+!i10b 1
+Z29 !s108 1695204918.000000
+Z30 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_combinatorial.vhd|
+Z31 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_combinatorial.vhd|
+!i113 1
+R11
+R12
+Atest
+R14
+R15
+R1
+R2
+DEx4 work 22 tb_adder_combinatorial 0 22 <?4F=1a98bn1h0QHB25a;3
+l19
+L8
+VNdKz18k]h_<=EN_k632f32
+!s100 NnOTCMORWGakfODm36o921
+R6
+32
+R28
+!i10b 1
+R29
+R30
+R31
+!i113 1
+R11
+R12
+Etb_adder_sequential
+Z32 w1695279845
+R15
+R1
+R2
+R3
+Z33 8C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_sequential.vhd
+Z34 FC:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_sequential.vhd
+l0
+L5
+V5TfWEPE6NJcTnbUV8clgm2
+!s100 kmVVW1=59dJDUAWbdOicU0
+R6
+32
+Z35 !s110 1695279858
+!i10b 1
+Z36 !s108 1695279858.000000
+Z37 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_sequential.vhd|
+Z38 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/vhdl-testbench-tuto/testbench/tb_adder_sequential.vhd|
+!i113 1
+R11
+R12
+Atest
+R20
+R15
+R1
+R2
+Z39 DEx4 work 19 tb_adder_sequential 0 22 5TfWEPE6NJcTnbUV8clgm2
+l24
+L8
+V?O7?NcXXjlYR^^UkN]GMT1
+!s100 ;:RlGDM;e=^XmP3JZICg?1
+R6
+32
+R35
+!i10b 1
+R36
+R37
+R38
+!i113 1
+R11
+R12
