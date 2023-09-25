@@ -36,24 +36,36 @@ begin
         b <= (31 downto 4 => '0') & "1010";
 
         -- A NOR B
-        -- assign the correct value to op to test A NOR B
+        op <= "00";
         wait for 20 ns;                 -- wait for circuit to settle
-        -- insert an ASSERT statement here
+        assert r(3 downto 0) = "0001" 
+            report "Incorrect NOR behavior" 
+            severity WARNING;
+        
 
         -- A AND B
-        -- assign the correct value to op to test A AND B
+        op <= "01";
         wait for 20 ns;                 -- wait for circuit to settle
-        -- insert an ASSERT statement here
+        assert r(3 downto 0) = "1000" 
+            report "Incorrect AND behavior" 
+            severity WARNING;
+        
 
         -- A OR B
-        -- assign the correct value to op to test A OR B
+        op <= "10";
         wait for 20 ns;                 -- wait for circuit to settle
-        -- insert an ASSERT statement here
+        assert r(3 downto 0) = "1110" 
+            report "Incorrect OR behavior" 
+            severity WARNING;
+        
 
         -- A XNOR B
-        -- assign the correct value to op to test A XNOR B
+        op <= "11";
         wait for 20 ns;                 -- wait for circuit to settle
-        -- insert an ASSERT statement here
+        assert r(3 downto 0) = "1001" 
+            report "Incorrect XNOR behavior" 
+            severity WARNING;
+        
 
         wait;                           -- wait forever
     end process;
