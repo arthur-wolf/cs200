@@ -15,10 +15,10 @@ end comparator;
 
 architecture synth of comparator is
 begin
-    r <= '1' when (op = "001" and ((a_31 = '1' and b_31 = '0') or ((a_31 = '1' xnor b_31 = '1') and (diff_31 = '1' or zero = '1')))) or   -- A <= B signed
-                  (op = "010" and ((a_31 = '0' and b_31 = '1') or ((a_31 = '1' xnor b_31 = '1') and (diff_31 = '0' and zero = '0')))) or  -- A > B signed
-                  ((op = "011" or op = "000" or op = "111") and zero = '0') or                            -- A /= B
-                  (op = "100" and zero = '1') or                            -- A = B
-                  (op = "101" and (carry = '0' or zero = '1')) or           -- A <= B unsigned
-                  (op = "110" and (carry = '1' and zero = '0')) else '0';   -- A > B unsigned
+    with op select r <= (a_31 and not(b_31)) or ((a_31 xnor b_31) and (diff_31 or zero)) when "001",            -- A <= B signed
+                        (not(a_31) and b_31) or ((a_31 xnor b_31) and (not(diff_31) and not(zero))) when "010", -- A > B
+                        not(zero) when "011",                                                                   -- A /= B
+                        (not(carry) or zero) when "101",                                                        -- A <= B unsigned
+                        carry and not(zero) when "110",                                                         -- A > B unsigned
+                        zero when OTHERS;                                                                       -- A = B 
 end synth;

@@ -12,14 +12,8 @@ end logic_unit;
 
 architecture synth of logic_unit is
 begin
-    logic: process(a, b, op) 
-    begin
-        case op is
-            when "00" => r <= a nor b;
-            when "01" => r <= a and b;
-            when "10" => r <= a or b;
-            when "11" => r <= a xnor b;
-            when others => r <= (others => 'X');
-        end case;
-    end process logic;
+    with op select r <= (a nor b) when "00",
+                        (a and b) when "01",
+                        (a or b) when "10",
+                        (a xnor b) when OTHERS; -- "11"
 end synth;
