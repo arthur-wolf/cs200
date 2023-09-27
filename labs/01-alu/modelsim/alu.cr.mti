@@ -1,10 +1,12 @@
-C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd
+C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
--- Compiling entity tb_add_sub
--- Compiling architecture testbench of tb_add_sub
+-- Loading package NUMERIC_STD
+-- Compiling entity tb_ALU
+-- Compiling architecture bench of tb_ALU
+-- Loading entity ALU
 
 } {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -13,6 +15,14 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package std_logic_1164
 -- Compiling entity logic_unit
 -- Compiling architecture synth of logic_unit
+
+} {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling entity tb_add_sub
+-- Compiling architecture testbench of tb_add_sub
 
 } {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -23,15 +33,14 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity shift_unit
 -- Compiling architecture synth of shift_unit
 
-} {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd
+} {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/add_sub.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/add_sub.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package NUMERIC_STD
--- Compiling entity tb_ALU
--- Compiling architecture bench of tb_ALU
--- Loading entity ALU
+-- Compiling entity add_sub
+-- Compiling architecture synth of add_sub
 
 } {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -56,13 +65,5 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package std_logic_1164
 -- Compiling entity tb_logic_unit
 -- Compiling architecture testbench of tb_logic_unit
-
-} {} {}} C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Compiling entity comparator
--- Compiling architecture synth of comparator
 
 } {} {}}

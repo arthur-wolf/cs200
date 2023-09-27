@@ -76,9 +76,41 @@ begin
                             -- comparator
                             when "011" =>
 ---------------------------------------MODIFY HERE-------------------------------------------------------------
-				ASSERT FALSE
-					REPORT "Replace this ASSERT with the code to test the comparator"
-                			SEVERITY ERROR;
+				case op(2 downto 0) is
+                    when "001" => 
+                       if(a <= b) then expected := (31 downto 1 => '0', 0 => '1');
+                       else expected := (31 downto 1 => '0', 0 => '0');
+                       end if;
+                    when "010" =>
+                       if(a > b) then expected := (31 downto 1 => '0', 0 => '1');
+                       else expected := (31 downto 1 => '0', 0 => '0');
+                       end if;
+                    when "011" =>
+                       if(a /= b) then expected := (31 downto 1 => '0', 0 => '1');
+                       else expected := (31 downto 1 => '0', 0 => '0');
+                       end if;
+                    when "100" =>
+                       if(a = b) then expected := (31 downto 1 => '0', 0 => '1');
+                       else expected := (31 downto 1 => '0', 0 => '0');
+                       end if;
+                    when "101" =>
+                       if(a <= b) then expected := (31 downto 1 => '0', 0 => '1');
+                       else expected := (31 downto 1 => '0', 0 => '0');
+                       end if;
+                    when "110" =>
+                       if(a > b) then expected := (31 downto 1 => '0', 0 => '1');
+                       else expected := (31 downto 1 => '0', 0 => '0');
+                       end if;
+                    -- we don't care for the others => ignore
+                    when others => expected := s;
+                end case;
+                    if ((s /= expected) and success) then
+                            ASSERT FALSE
+                                REPORT "Incorrect Behavior for Comparator"
+                                SEVERITY ERROR;
+                            success := FALSE;
+                            wait;       -- to stop after the first error.
+                    end if;
 ---------------------------------------END MODIFY--------------------------------------------------------------
                             -- "010" is not valid -> ignore
                             -- logical unit

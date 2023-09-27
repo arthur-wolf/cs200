@@ -9,7 +9,7 @@ z2
 cModel Technology
 dC:/Template/modelsim
 Eadd_sub
-Z0 w1695548582
+Z0 w1695796708
 Z1 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
 Z2 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
 Z3 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
@@ -22,9 +22,9 @@ V207_zj^V^3XmVFBkYPT0^3
 !s100 Ho^oT``GLJUNf<W@=D9Un1
 Z7 OV;C;10.5b;63
 32
-Z8 !s110 1695548588
+Z8 !s110 1695796795
 !i10b 1
-Z9 !s108 1695548588.000000
+Z9 !s108 1695796795.000000
 Z10 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/add_sub.vhd|
 Z11 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/add_sub.vhd|
 !i113 1
@@ -34,11 +34,11 @@ Asynth
 R1
 R2
 R3
-Z14 DEx4 work 7 add_sub 0 22 207_zj^V^3XmVFBkYPT0^3
-l17
+DEx4 work 7 add_sub 0 22 207_zj^V^3XmVFBkYPT0^3
+l21
 L16
-Vz^R8z2G2=6;e2Di_<z1m61
-!s100 T9fPMb[C;?b8gACFgL^2f0
+V9`?5nHO0nA3cXJ@^ho?eg0
+!s100 Zf`i3b?jaD>5e`zJ751oz2
 R7
 32
 R8
@@ -50,62 +50,62 @@ R11
 R12
 R13
 Ealu
-Z15 w1695477647
+Z14 w1695795288
 R2
 R3
 R4
-Z16 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd
-Z17 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd
+Z15 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd
+Z16 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd
 l0
 L24
 VLIV0?b]kCZ40<iPbTC=4:2
 !s100 O`l`Xc5c_V9`dzon<W_fQ2
 R7
 32
-Z18 !s110 1695541807
+R8
 !i10b 1
-Z19 !s108 1695541807.000000
-Z20 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd|
-Z21 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd|
+R9
+Z17 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd|
+Z18 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/ALU.vhd|
 !i113 1
 R12
 R13
 Abdf_type
 R2
 R3
-Z22 DEx4 work 3 alu 0 22 LIV0?b]kCZ40<iPbTC=4:2
+Z19 DEx4 work 3 alu 0 22 LIV0?b]kCZ40<iPbTC=4:2
 l91
 L34
 Vn7Jhlm<g3=Igo4gAY0?Z=3
 !s100 ao^@A8=RSg[FW?jY:[EXI0
 R7
 32
-R18
+R8
 !i10b 1
-R19
-R20
-R21
+R9
+R17
+R18
 !i113 1
 R12
 R13
 Ecomparator
-R15
+Z20 w1695796789
 R2
 R3
 R4
-Z23 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd
-Z24 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd
+Z21 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd
+Z22 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd
 l0
 L4
 V3WXakLjKGIMC9fTC_zAJG3
 !s100 XTWoF>RX1>LcmLLBBo;N:0
 R7
 32
-R18
+R8
 !i10b 1
-R19
-Z25 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd|
-Z26 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd|
+R9
+Z23 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd|
+Z24 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/comparator.vhd|
 !i113 1
 R12
 R13
@@ -115,36 +115,36 @@ R3
 DEx4 work 10 comparator 0 22 3WXakLjKGIMC9fTC_zAJG3
 l17
 L16
-V4H[>NIZHB;1056V@R2LH31
-!s100 W_^:E1=WQ7kN:@Y9W>e1W2
+V[]aRhc^<hmn8oRbjX93GA2
+!s100 ;H6K=OUF2UQ1lGjbWA[]L1
 R7
 32
-R18
+R8
 !i10b 1
-R19
-R25
-R26
+R9
+R23
+R24
 !i113 1
 R12
 R13
 Elogic_unit
-Z27 w1695479627
+Z25 w1695796150
 R2
 R3
 R4
-Z28 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd
-Z29 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd
+Z26 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd
+Z27 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd
 l0
 L4
 VfUEL39DQfcR_XLk:Hoe<f3
 !s100 UJioXKUg8XUULGTSe2WE20
 R7
 32
-R18
+R8
 !i10b 1
-R19
-Z30 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd|
-Z31 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd|
+R9
+Z28 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd|
+Z29 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/logic_unit.vhd|
 !i113 1
 R12
 R13
@@ -154,36 +154,36 @@ R3
 DEx4 work 10 logic_unit 0 22 fUEL39DQfcR_XLk:Hoe<f3
 l14
 L13
-VZA=baUANL4@HcDKjIz5bL0
-!s100 SXhLo7g>9hX990c67;aYO0
+VHEGA<o>NlK>bcD7bD=HM93
+!s100 R2QK9=cgLo`V8<HH^MT?<3
 R7
 32
-R18
+R8
 !i10b 1
-R19
-R30
-R31
+R9
+R28
+R29
 !i113 1
 R12
 R13
 Emultiplexer
-R15
+R14
 R2
 R3
 R4
-Z32 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd
-Z33 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd
+Z30 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd
+Z31 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd
 l0
 L4
 V4iH6`nZgBAHVia??bJk>G2
 !s100 UDM^5ga=kb9Z[=K^]bghV0
 R7
 32
-R18
+R8
 !i10b 1
-R19
-Z34 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd|
-Z35 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd|
+R9
+Z32 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd|
+Z33 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/multiplexer.vhd|
 !i113 1
 R12
 R13
@@ -193,37 +193,37 @@ R3
 DEx4 work 11 multiplexer 0 22 4iH6`nZgBAHVia??bJk>G2
 l16
 L15
-Vmk9zz^U@z1=hb;Kf7`dSX1
-!s100 KX<nS<K?;@a;0?GJm8`iR2
+VL`O[V0]Wj1IV6__:d<2jT1
+!s100 WFQe05bBk8nTleV6>VdLX1
 R7
 32
-R18
+R8
 !i10b 1
-R19
-R34
-R35
+R9
+R32
+R33
 !i113 1
 R12
 R13
 Eshift_unit
-R15
+R14
 R1
 R2
 R3
 R4
-Z36 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd
-Z37 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd
+Z34 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd
+Z35 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd
 l0
 L5
 VoYz=ZP:Rg2U9Eb=ZGo>940
 !s100 C4@E7NN0:UB89P^MW405S0
 R7
 32
-R18
+R8
 !i10b 1
-R19
-Z38 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd|
-Z39 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd|
+R9
+Z36 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd|
+Z37 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/vhdl/shift_unit.vhd|
 !i113 1
 R12
 R13
@@ -238,113 +238,113 @@ V@nFV=K3:Z_d6IjB;3@zU;3
 !s100 [321mfnCdb31EL<HVmGPL3
 R7
 32
-R18
+R8
 !i10b 1
-R19
-R38
-R39
+R9
+R36
+R37
 !i113 1
 R12
 R13
 Etb_add_sub
-Z40 w1695541990
+R14
 R2
 R3
 R4
-Z41 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd
-Z42 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd
+Z38 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd
+Z39 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd
 l0
 L4
 VQjTEaLcN@@gJhM3Pf`NEn3
 !s100 ]N?D@mCJQm@IB=<S9;fo?0
 R7
 32
-Z43 !s110 1695548368
+R8
 !i10b 1
-Z44 !s108 1695548368.000000
-Z45 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd|
-Z46 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd|
+R9
+Z40 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd|
+Z41 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_add_sub.vhd|
 !i113 1
 R12
 R13
 Atestbench
 R2
 R3
-DEx4 work 10 tb_add_sub 0 22 QjTEaLcN@@gJhM3Pf`NEn3
+Z42 DEx4 work 10 tb_add_sub 0 22 QjTEaLcN@@gJhM3Pf`NEn3
 l23
 L7
-VTVG[1<jc9WjRod8kn^>l:2
-!s100 fQI61D_b==^;LfGRkKD[z3
+Z43 VTVG[1<jc9WjRod8kn^>l:2
+Z44 !s100 fQI61D_b==^;LfGRkKD[z3
 R7
 32
-R43
+R8
 !i10b 1
-R44
-R45
-R46
+R9
+R40
+R41
 !i113 1
 R12
 R13
 Etb_alu
-R15
+Z45 w1695796382
 R1
 R2
 R3
 R4
-Z47 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd
-Z48 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd
+Z46 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd
+Z47 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd
 l0
 L5
 VPC4a2j0Z@h07SO>N@?M3X3
 !s100 h4gR^9UUSFUJBW2hl@TTO2
 R7
 32
-R18
+R8
 !i10b 1
-R19
-Z49 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd|
-Z50 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd|
+R9
+Z48 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd|
+Z49 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_ALU.vhd|
 !i113 1
 R12
 R13
 Abench
-R22
+R19
 R1
 R2
 R3
 DEx4 work 6 tb_alu 0 22 PC4a2j0Z@h07SO>N@?M3X3
 l12
 L8
-Vhd`ZgF5`aaZoNaT;0a^R_2
-!s100 7<eBm;d1bT1]MHSSK<:<d2
+VTNRjeFGIEAPaeUX3aRG?F3
+!s100 UIO2GMIQNAHa4?5D6RS[Z0
 R7
 32
-R18
+R8
 !i10b 1
-R19
+R9
+R48
 R49
-R50
 !i113 1
 R12
 R13
 Etb_logic_unit
-Z51 w1695479625
+R14
 R2
 R3
 R4
-Z52 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd
-Z53 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd
+Z50 8C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd
+Z51 FC:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd
 l0
 L4
 V56]=9U8E_0^hnOWE8_kak0
 !s100 I0S6Z^F^OTJKf4O?Ic>222
 R7
 32
-R18
+R8
 !i10b 1
-R19
-Z54 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd|
-Z55 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd|
+R9
+Z52 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd|
+Z53 !s107 C:/Users/arthu/epfl/ba3/cs200/labs/01-alu/testbench/tb_logic_unit.vhd|
 !i113 1
 R12
 R13
@@ -358,11 +358,11 @@ VT?LSoIgnDFTECEj1m^B8C0
 !s100 O0cn2Bmf31AQjWMoIPk0k3
 R7
 32
-R18
+R8
 !i10b 1
-R19
-R54
-R55
+R9
+R52
+R53
 !i113 1
 R12
 R13

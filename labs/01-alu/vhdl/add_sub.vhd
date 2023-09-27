@@ -14,14 +14,15 @@ entity add_sub is
 end add_sub;
 
 architecture synth of add_sub is
-    signal sub_32 : unsigned(32 downto 0);
-    signal r_out  : std_logic_vector(32 downto 0);
-    signal bxor   : std_logic_vector(31 downto 0);
+    signal subxorb_out: std_logic_vector(31 downto 0);
+    signal adder: std_logic_vector(32 downto 0);
+    signal s_sub: unsigned(32 downto 0);
+    constant zero_vector: std_logic_vector(31 downto 0) := (others => '0');
 begin
-    sub_32 <= to_unsigned(1, 33) when sub_mode = '1' else to_unsigned(0, 33);
-    bxor   <= b xor std_logic_vector(sub_32(31 downto 0));
-    r_out  <= std_logic_vector( unsigned(a) + unsigned(bxor) + sub_32 );
-    zero   <= '1' when r_out(31 downto 0) = std_logic_vector(to_unsigned(0, 32)) else '0';
-    r      <= r_out(31 downto 0);
-    carry  <= r_out(32);
+    subxorb_out <= b xor (31 downto 0 => sub_mode);
+    s_sub <= to_unsigned(1, 33) when sub_mode = '1' else to_unsigned(0, 33);
+    adder <= std_logic_vector(unsigned('0' & a) + unsigned('0' & subxorb_out) + s_sub); 
+    r <= adder(31 downto 0);
+    zero <= '1' when (adder(31 downto 0) = zero_vector) else '0';
+    carry <= std_logic(adder(32));
 end synth;
