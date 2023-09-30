@@ -20,16 +20,17 @@ architecture synth of register_file is
     signal reg : reg_array;
     
 begin
-    process(clk, aa, ab, reg)
+        a <= reg(to_integer(unsigned(aa))); -- read aa
+        b <= reg(to_integer(unsigned(ab))); -- read ab
+
+    process(clk)
     begin
         if rising_edge(clk) then
-            if (wren = '1') and (aw = std_logic_vector(to_unsigned(0, 5))) then  -- write
+            reg(0) <= (others => '0');
+            if (wren = '1') then  -- write
                 reg(to_integer(unsigned(aw))) <= wrdata;
             end if;
         end if;
-
-        a <= reg(to_integer(unsigned(aa))); -- read aa
-        b <= reg(to_integer(unsigned(ab))); -- read ab
 
     end process;
 end synth;
