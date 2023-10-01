@@ -25,15 +25,17 @@ architecture synth of ROM is
     end component;
 
 begin
-    
-    process(clk)
+
+    dff : process(clk)
     begin
         if rising_edge(clk) then
+            -- save inputs
             sig_read <= cs and read;
         end if;
-    end process;
+    end process dff;
 
-    rddata <= sig_q when sig_read = '1' else (others => '0');
+    -- read
+    rddata <= sig_q when sig_read = '1' else (others => 'Z');
 
     rom_bl : ROM_Block 
     port map(
