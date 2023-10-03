@@ -12,4 +12,5 @@ end mux2x16;
 
 architecture synth of mux2x16 is
 begin
+    o <= i0 when sel = '0' else i1;
 end synth;

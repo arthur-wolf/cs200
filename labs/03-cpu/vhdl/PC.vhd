@@ -17,5 +17,14 @@ entity PC is
 end PC;
 
 architecture synth of PC is
+    constant INIT_ADDRESS : std_logic_vector := x"0000";
 begin
+    dff: process(clk, reset_n)
+    begin
+        if reset_n = '0' then
+            addr <= INIT_ADDRESS;
+        elsif rising_edge(clk) then
+            addr <= addr + 4;
+        end if;
+    end process dff;
 end synth;

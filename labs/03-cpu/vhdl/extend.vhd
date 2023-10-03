@@ -11,4 +11,6 @@ end extend;
 
 architecture synth of extend is
 begin
+    imm32 <= (imm16 and x"0000") when ((signed = '1' and imm16(15) = '0') or signed = '0') 
+                                else ("11111111111111111" & imm16(14 downto 0));
 end synth;
