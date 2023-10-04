@@ -18,13 +18,28 @@ end PC;
 
 architecture synth of PC is
     constant INIT_ADDRESS : std_logic_vector := x"0000";
+
+    signal s_addr : std_logic_vector(15 downto 0);
 begin
     dff: process(clk, reset_n)
     begin
         if reset_n = '0' then
-            addr <= INIT_ADDRESS;
+            s_addr <= INIT_ADDRESS;
+
         elsif rising_edge(clk) then
-            addr <= addr + 4;
+            if(en = '1') then
+                if(add_imm = '1') then
+                    s_addr <= std_logic_vector(unsigned(s_addr) + unsigned(imm));
+                elsif(sel_imm = '1') then
+                    s_addr <= std_logic_vector(shift_left(unsigned(imm), 2));
+                elsif(sel_a = '1') then
+                    s_addr <= a;
+                else
+                    s_addr <= std_logic_vector(unsigned(s_addr) + 4);
+                end if;
+            end if;
         end if;
     end process dff;
+
+    addr <= x"0000" & s_addr(15 downto 2) & "00";
 end synth;
