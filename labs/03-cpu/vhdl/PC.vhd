@@ -29,9 +29,9 @@ begin
         elsif rising_edge(clk) then
             if(en = '1') then
                 if(add_imm = '1') then
-                    s_addr <= std_logic_vector(unsigned(s_addr) + unsigned(imm));
+                    s_addr <= std_logic_vector(signed(s_addr) + signed(imm));
                 elsif(sel_imm = '1') then
-                    s_addr <= std_logic_vector(shift_left(unsigned(imm), 2));
+                    s_addr <= std_logic_vector(shift_left(signed(imm), 2));
                 elsif(sel_a = '1') then
                     s_addr <= a;
                 else
