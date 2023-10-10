@@ -1,1 +1,7 @@
 .DS_Store
+
+# settings files
+labs/03-cpu/.library_mapping.xml
+labs/03-cpu/.project
+labs/03-cpu/.settings/com.sigasi.hdt.vhdl.versions.prefs
+labs/03-cpu/.settings/org.eclipse.core.resources.prefs
