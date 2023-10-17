@@ -46,8 +46,17 @@ architecture synth of controller is
     constant c_break : std_logic_vector(5 downto 0) := "110100"; -- 0x34
     constant c_load1 : std_logic_vector(5 downto 0) := "010111"; -- 0x17
     constant c_itype_op : std_logic_vector(5 downto 0) := "111110"; -- 0x3E
-begin
 
+    constant c_and : std_logic_vector(5 downto 0) := "001110"; -- 0x0E
+    constant c_srl : std_logic_vector(5 downto 0) := "011011"; -- 0x1B
+
+    constant c_addi : std_logic_vector(5 downto 0) := "000100"; -- 0x04
+    
+begin
+    s_op <= op;
+    s_opx <= opx;
+
+    -- state machine
     flipflop: process(clk, reset_n)
     begin
         if reset_n = '0' then
@@ -59,6 +68,23 @@ begin
 
     fsm : process(s_current_state, s_op)
     begin
+        -- default values
+        write <= '0';
+        read <= '0';
+        pc_en <= '0';
+        ir_en <= '0';
+        sel_b <= '0';
+        sel_rC <= '0';
+        sel_addr <= '0';
+        sel_mem <= '0';
+        rf_wren <= '0';
+        branch_op <= '0';
+        pc_add_imm <= '0';
+        sel_ra <= '0';
+        pc_sel_imm <= '0';
+        sel_pc  <= '0';
+        pc_sel_a  <= '0';
+
         case s_current_state is 
             when FETCH1 =>
                 read <= '1';
@@ -112,9 +138,31 @@ begin
                 s_next_state <= FETCH1;
 
             when I_OP =>
+                imm_signed <= '1';
+                rf_wren <= '1';
                 s_next_state <= FETCH1;
 
         end case;
     end process fsm;
+
+    op_pr : process(s_op, s_opx) is
+    begin
+        case (s_op) is
+            -- R-type instructions
+            when c_rtype_op =>
+                case (s_opx) is
+                    when c_and => op_alu <= "10XX01";
+                    when c_srl => op_alu <= "11X001";
+                end case;
+
+            -- I-type instructions
+            when c_addi => op_alu <= "000XXX";
+
+            -- Branch instructions
+
+            when others =>
+                op_alu <= "XXXXXX";
+        end case;
+    end process op_pr;
 
 end synth;
