@@ -150,13 +150,19 @@ begin
                         case s_opx is
                             when c_break => 
                                 s_next_state <= BREAK;
-                            when c_br | c_ble | c_bgt | c_bne | c_beq | c_bleu | c_bgtu =>
+                            when c_br | c_ble | c_bgt | c_bne 
+                                    | c_beq | c_bleu | c_bgtu =>
                                 s_next_state <= BRANCH;
                             when c_callr =>
                                 s_next_state <= CALLR;
                             when c_jmp | c_ret =>
                                 s_next_state <= JMP;
-                            when c_add | c_sub | c_cmple | c_cmpgt | c_nor | c_and | c_or | c_xnor | c_sll | c_srl | c_sra | c_cmpne | c_cmpeq | c_cmpleu | c_cmpgtu | c_rol | c_ror =>
+                            when c_add | c_sub | c_cmple 
+                                    | c_cmpgt | c_nor | c_and 
+                                    | c_or | c_xnor | c_sll 
+                                    | c_srl | c_sra | c_cmpne 
+                                    | c_cmpeq | c_cmpleu | c_cmpgtu 
+                                    | c_rol | c_ror =>
                                 s_next_state <= R_OP;
                             when others =>
                                 s_next_state <= R_OP;
@@ -169,9 +175,12 @@ begin
                         s_next_state <= LOAD1;
                     when c_call =>
                         s_next_state <= CALL;
-                    when c_itype_op | c_addi | c_cmplei | c_cmpgti | c_cmpnei | c_cmpeqi =>
+                    when c_itype_op | c_addi | c_cmplei 
+                            | c_cmpgti | c_cmpnei | c_cmpeqi =>
                         s_next_state <= I_OP;
-                    when c_andi | c_ori | c_xnori | c_cmpleui | c_cmpgtui | c_slli | c_srli | c_srai | c_roli =>
+                    when c_andi | c_ori | c_xnori 
+                            | c_cmpleui | c_cmpgtui | c_slli 
+                            | c_srli | c_srai | c_roli =>
                         s_next_state <= EXECUTE;
                     when c_jumpi =>
                         s_next_state <= JMPI;
@@ -260,12 +269,50 @@ begin
                 case (s_opx) is
                     when c_and => op_alu <= "10XX01";
                     when c_srl => op_alu <= "11X001";
+                    when c_add => op_alu <= "000XXX";
+                    when c_sub => op_alu <= "001XXX";
+                    when c_cmple => op_alu <= "011001";
+                    when c_cmpgt => op_alu <= "011010";
+                    when c_nor => op_alu <= "10XX00";
+                    when c_or => op_alu <= "10XX10";
+                    when c_xnor => op_alu <= "10XX11";
+                    when c_sll => op_alu <= "11X010";
+                    when c_sra => op_alu <= "11X111";
+                    when c_slli => op_alu <= "11X010";
+                    when c_srli => op_alu <= "11X011";
+                    when c_srai => op_alu <= "11X111";
+                    when c_roli => op_alu <= "11X000";
+                    when c_cmpne => op_alu <= "011011";
+                    when c_cmpeq => op_alu <= "011100";
+                    when c_cmpleu => op_alu <= "011101";
+                    when c_cmpgtu => op_alu <= "011110";
+                    when c_rol => op_alu <= "11X000";
+                    when c_ror => op_alu <= "11X001";
+                    when others => op_alu <= "XXXXXX";
                 end case;
 
             -- I-type instructions
             when c_addi => op_alu <= "000XXX";
+            when c_load1 => op_alu <= "000XXX";
+            when c_store => op_alu <= "000XXX";
+            when c_andi => op_alu <= "10XX01";
+            when c_ori => op_alu <= "10XX10";
+            when c_xnori => op_alu <= "10XX11";
+            when c_cmplei => op_alu <= "011001";
+            when c_cmpgti => op_alu <= "011010";
+            when c_cmpnei => op_alu <= "011011";
+            when c_cmpeqi => op_alu <= "011100";
+            when c_cmpleui => op_alu <= "011101";
+            when c_cmpgtui => op_alu <= "011110";
 
             -- Branch instructions
+            when c_br => op_alu <= "011100"; -- and operation with 0 values to output 1
+            when c_ble => op_alu <= "011001";
+            when c_bgt => op_alu <= "011010";
+            when c_bne => op_alu <= "011011";
+            when c_beq => op_alu <= "011100";
+            when c_bleu => op_alu <= "011101";
+            when c_bgtu => op_alu <= "011110";
 
             when others =>
                 op_alu <= "XXXXXX";
