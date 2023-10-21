@@ -37,7 +37,7 @@ entity controller is
 end controller;
 
 architecture synth of controller is
-    type state is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP);
+    type state is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JMP, JMPI, EXECUTE);
     signal s_current_state, s_next_state : state:= FETCH1;
     signal s_op, s_opx : std_logic_vector(5 downto 0);
 
@@ -113,7 +113,7 @@ begin
         end if;
     end process flipflop;
 
-    fsm : process(s_current_state, s_op)
+    fsm : process(s_current_state, s_op, s_opx)
     begin
         -- default values
         write <= '0';
@@ -144,17 +144,40 @@ begin
 
             when DECODE =>
                 case s_op is
+
+                    -- R-type instructions
                     when c_rtype_op =>
-                        s_next_state <= R_OP;
+                        case s_opx is
+                            when c_break => 
+                                s_next_state <= BREAK;
+                            when c_br | c_ble | c_bgt | c_bne | c_beq | c_bleu | c_bgtu =>
+                                s_next_state <= BRANCH;
+                            when c_callr =>
+                                s_next_state <= CALLR;
+                            when c_jmp | c_ret =>
+                                s_next_state <= JMP;
+                            when c_add | c_sub | c_cmple | c_cmpgt | c_nor | c_and | c_or | c_xnor | c_sll | c_srl | c_sra | c_cmpne | c_cmpeq | c_cmpleu | c_cmpgtu | c_rol | c_ror =>
+                                s_next_state <= R_OP;
+                            when others =>
+                                s_next_state <= R_OP;
+                        end case;
+
+                    -- I-type instructions
                     when c_store =>
                         s_next_state <= STORE;
-                    when c_break =>
-                        s_next_state <= BREAK;
                     when c_load1 =>
                         s_next_state <= LOAD1;
-                    when c_itype_op =>
+                    when c_call =>
+                        s_next_state <= CALL;
+                    when c_itype_op | c_addi | c_cmplei | c_cmpgti | c_cmpnei | c_cmpeqi =>
                         s_next_state <= I_OP;
-                    when others => -- default state for non valid opcodes
+                    when c_andi | c_ori | c_xnori | c_cmpleui | c_cmpgtui | c_slli | c_srli | c_srai | c_roli =>
+                        s_next_state <= EXECUTE;
+                    when c_jumpi =>
+                        s_next_state <= JMPI;
+
+                    -- default state for non valid opcodes
+                    when others =>
                         s_next_state <= FETCH1;
                 end case;
 
@@ -173,6 +196,38 @@ begin
             when BREAK =>
                 s_next_state <= BREAK;
 
+            when BRANCH =>
+                branch_op <= '1';
+                sel_b <= '1';
+                pc_add_imm <= '1';
+                s_next_state <= FETCH1;
+            
+            when CALL =>
+                rf_wren <= '1';
+                pc_en <= '1';
+                pc_sel_imm <= '1';
+                sel_pc <= '1';
+                sel_ra <= '1';
+                s_next_state <= FETCH1;
+            
+            when CALLR =>
+                rf_wren <= '1';
+                pc_en <= '1';
+                pc_sel_a <= '1';
+                sel_pc <= '1';
+                sel_ra <= '1';
+                s_next_state <= FETCH1;
+
+            when JMP =>
+                pc_en <= '1';
+                pc_sel_a <= '1';
+                s_next_state <= FETCH1;
+            
+            when JMPI =>
+                pc_en <= '1';
+                pc_sel_imm <= '1';
+                s_next_state <= FETCH1;
+
             when LOAD1 =>
                 read <= '1';
                 sel_addr <= '1';
@@ -185,6 +240,11 @@ begin
                 s_next_state <= FETCH1;
 
             when I_OP =>
+                imm_signed <= '1';
+                rf_wren <= '1';
+                s_next_state <= FETCH1;
+
+            when EXECUTE =>
                 imm_signed <= '1';
                 rf_wren <= '1';
                 s_next_state <= FETCH1;
