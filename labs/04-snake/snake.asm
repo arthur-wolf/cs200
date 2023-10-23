@@ -54,7 +54,12 @@ addi    sp, zero, LEDS
 ;     This procedure should never return.
 main:
     ; TODO: Finish this procedure.
-
+    clear_leds
+    set_pixel 0 0
+    set_pixel 4 0
+    set_pixel 12 0
+    set_pixel 16 0
+    set_pixel 20 0
     ret
 
 

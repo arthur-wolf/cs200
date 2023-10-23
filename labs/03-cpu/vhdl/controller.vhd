@@ -37,7 +37,7 @@ entity controller is
 end controller;
 
 architecture synth of controller is
-    type state is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JMP, JMPI, EXECUTE);
+    type state is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JMP, JMPI, R_EXECUTE, I_EXECUTE);
     signal s_current_state, s_next_state : state:= FETCH1;
     signal s_op, s_opx : std_logic_vector(5 downto 0);
 
@@ -74,7 +74,6 @@ architecture synth of controller is
     constant c_ror : std_logic_vector(5 downto 0) := "001011"; -- 0x0B
     
     -- I-type operations
-    constant c_itype_op : std_logic_vector(5 downto 0) := "111110"; -- 0x3E
     constant c_store : std_logic_vector(5 downto 0) := "010101"; -- 0x15
     constant c_load1 : std_logic_vector(5 downto 0) := "010111"; -- 0x17
     constant c_jumpi : std_logic_vector(5 downto 0) := "000001"; -- 0x01
@@ -150,38 +149,29 @@ begin
                         case s_opx is
                             when c_break => 
                                 s_next_state <= BREAK;
-                            when c_br | c_ble | c_bgt | c_bne 
-                                    | c_beq | c_bleu | c_bgtu =>
-                                s_next_state <= BRANCH;
                             when c_callr =>
                                 s_next_state <= CALLR;
                             when c_jmp | c_ret =>
                                 s_next_state <= JMP;
-                            when c_add | c_sub | c_cmple 
-                                    | c_cmpgt | c_nor | c_and 
-                                    | c_or | c_xnor | c_sll 
-                                    | c_srl | c_sra | c_cmpne 
-                                    | c_cmpeq | c_cmpleu | c_cmpgtu 
-                                    | c_rol | c_ror =>
-                                s_next_state <= R_OP;
+                            when c_slli | c_srli | c_srai | c_roli =>
+                                s_next_state <= R_EXECUTE;
                             when others =>
                                 s_next_state <= R_OP;
                         end case;
 
                     -- I-type instructions
+                    when c_br | c_ble | c_bgt | c_bne | c_beq | c_bleu | c_bgtu =>
+                                s_next_state <= BRANCH;
                     when c_store =>
                         s_next_state <= STORE;
                     when c_load1 =>
                         s_next_state <= LOAD1;
                     when c_call =>
                         s_next_state <= CALL;
-                    when c_itype_op | c_addi | c_cmplei 
-                            | c_cmpgti | c_cmpnei | c_cmpeqi =>
+                    when c_addi | c_cmplei | c_cmpgti | c_cmpnei | c_cmpeqi =>
                         s_next_state <= I_OP;
-                    when c_andi | c_ori | c_xnori 
-                            | c_cmpleui | c_cmpgtui | c_slli 
-                            | c_srli | c_srai | c_roli =>
-                        s_next_state <= EXECUTE;
+                    when c_andi | c_ori | c_xnori | c_cmpleui | c_cmpgtui =>
+                            s_next_state <= I_EXECUTE;
                     when c_jumpi =>
                         s_next_state <= JMPI;
 
@@ -253,11 +243,16 @@ begin
                 rf_wren <= '1';
                 s_next_state <= FETCH1;
 
-            when EXECUTE =>
-                imm_signed <= '1';
+            when I_EXECUTE =>
+                imm_signed <= '0';
                 rf_wren <= '1';
                 s_next_state <= FETCH1;
 
+            when R_EXECUTE =>
+                sel_b <= '0';
+                sel_rC <= '1';
+                rf_wren <= '1';
+                s_next_state <= FETCH1;
         end case;
     end process fsm;
 
