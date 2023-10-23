@@ -60,13 +60,39 @@ main:
 
 ; BEGIN: clear_leds
 clear_leds:
-
+    stw zero, LEDS(zero)
+    stw zero, LEDS+4(zero)
+    stw zero, LEDS+8(zero)
+    ret
 ; END: clear_leds
 
 
 ; BEGIN: set_pixel
 set_pixel:
+    addi sp, sp, -20
+    stw s0, 0(sp)
+    stw s1, 4(sp)
+    stw s2, 8(sp)
+    stw s3, 12(sp)
+    stw s4, 16(sp)
 
+    andi s1, a0, 12; s1 = le nombre du LED (0, 4 ou 8)
+    slli s0, a0, 3 ; s0 = 8*x
+    andi s2, s0, 31; mask les 5 derniers bits => (8*x) % 32
+    add s2, s2, a1 ; bit = ((8*x)%32) + y 
+    addi s3, zero, 1
+    sll s3, s3, s2; s3 = s3 << s2
+    ldw s4, LEDS(s1); load the led
+    or s3, s4, s3; s3 = s3 || s4
+    stw s3, LEDS(s1)
+
+    ldw s4, 16(sp)
+    ldw s3, 12(sp)
+    ldw s2, 8(sp)
+    ldw s1, 4(sp)
+    ldw s0, 0(sp)
+    addi sp, sp, 20
+    ret
 ; END: set_pixel
 
 
