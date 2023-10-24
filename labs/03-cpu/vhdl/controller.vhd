@@ -263,7 +263,7 @@ begin
             when c_rtype_op =>
                 case (s_opx) is
                     when c_and => op_alu <= "10XX01";
-                    when c_srl => op_alu <= "11X001";
+                    when c_srl => op_alu <= "11X011";
                     when c_add => op_alu <= "000XXX";
                     when c_sub => op_alu <= "001XXX";
                     when c_cmple => op_alu <= "011001";
