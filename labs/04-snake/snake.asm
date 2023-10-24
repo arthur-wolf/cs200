@@ -52,54 +52,79 @@ addi    sp, zero, LEDS
 ;
 ; return values
 ;     This procedure should never return.
+; BEGIN:main
 main:
-    ; TODO: Finish this procedure.
-    clear_leds
-    set_pixel 0 0
-    set_pixel 4 0
-    set_pixel 12 0
-    set_pixel 16 0
-    set_pixel 20 0
+    ; Call clear_leds to initialize the display
+    call clear_leds
+
+    ; Call set_pixel with different parameters to turn on some pixels
+
+    ; Turn on pixel at (2, 3)
+    li a0, 2          ; x-coordinate
+    li a1, 3          ; y-coordinate
+    call set_pixel
+
+    ; Turn on pixel at (5, 5)
+    li a0, 5          ; x-coordinate
+    li a1, 5          ; y-coordinate
+    call set_pixel
+
+    ; Turn on pixel at (7, 2)
+    li a0, 7          ; x-coordinate
+    li a1, 2          ; y-coordinate
+    call set_pixel
+
+    ; ... Add more calls to set_pixel as needed ...
+
+    ; End of main procedure
     ret
+; END:main
 
-
+; Arguments:
+;     none
+; Return values:
+;     none
 ; BEGIN: clear_leds
 clear_leds:
-    stw zero, LEDS(zero)
-    stw zero, LEDS+4(zero)
-    stw zero, LEDS+8(zero)
+    ; Set all three 32-bit words in the LED array to 0
+    li t0, 0          ; Load immediate value 0 into temporary register t0
+
+    stw t0, LEDS(0)   ; Store 0 to LEDS[0]
+    stw t0, LEDS(4)   ; Store 0 to LEDS[1]
+    stw t0, LEDS(8)   ; Store 0 to LEDS[2]
+
     ret
 ; END: clear_leds
 
-
+; Arguments:
+;     a0: x-coordinate
+;     a1: y-coordinate
+; Return values:
+;     none
 ; BEGIN: set_pixel
 set_pixel:
-    addi sp, sp, -20
-    stw s0, 0(sp)
-    stw s1, 4(sp)
-    stw s2, 8(sp)
-    stw s3, 12(sp)
-    stw s4, 16(sp)
+    ; Calculate the LED index based on x and y coordinates
+    ; index = y * 12 + x
+    mul a2, a1, #12   ; a2 = y * 12
+    add a2, a2, a0    ; a2 = y * 12 + x
 
-    andi s1, a0, 12; s1 = le nombre du LED (0, 4 ou 8)
-    slli s0, a0, 3 ; s0 = 8*x
-    andi s2, s0, 31; mask les 5 derniers bits => (8*x) % 32
-    add s2, s2, a1 ; bit = ((8*x)%32) + y 
-    addi s3, zero, 1
-    sll s3, s3, s2; s3 = s3 << s2
-    ldw s4, LEDS(s1); load the led
-    or s3, s4, s3; s3 = s3 || s4
-    stw s3, LEDS(s1)
+    ; Determine which 32-bit word the pixel belongs to
+    div a3, a2, #32   ; a3 = index / 32 (word index)
+    rem a4, a2, #32   ; a4 = index % 32 (bit position in the word)
 
-    ldw s4, 16(sp)
-    ldw s3, 12(sp)
-    ldw s2, 8(sp)
-    ldw s1, 4(sp)
-    ldw s0, 0(sp)
-    addi sp, sp, 20
+    ; Load the current value of the word
+    ldw t0, LEDS(a3)  ; t0 = LEDS[word index]
+
+    ; Set the bit corresponding to the pixel
+    li t1, 1          ; t1 = 1
+    sll t1, t1, a4    ; shift left to set the bit at position a4
+    or t0, t0, t1     ; set the bit in t0
+
+    ; Store the updated value back to memory
+    stw t0, LEDS(a3)
+
     ret
 ; END: set_pixel
-
 
 ; BEGIN: display_score
 display_score:
