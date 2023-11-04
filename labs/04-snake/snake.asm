@@ -114,7 +114,7 @@ set_pixel:
     stw s3, 12(sp)              ; save s3
     stw s4, 16(sp)              ; save s4
 
-    andi s1, a0, 12             ; s1 = x & 12 (12 = 0b1100, mask the 2 MSB)) (s1 selects the LEDS register to write to)
+    andi s1, a0, 12             ; s1 = x & 12 (12 = 0b1100, mask the 2 MSB) (s1 selects the LEDS register to write to)
     slli s0, a0, 3              ; s0 = x << 3 (8*x)
     andi s2, s0, 31             ; s2 = s0 & 31 (31 = 0b11111, mask the 5 LSB)
     add s2, s2, a1              ; s2 = s2 + y
@@ -304,13 +304,13 @@ move_snake:
 
     move_right:
         addi t0, t0, 1        ; Move right
-        bne zero, zero, update_snake_position
+        beq zero, zero, update_snake_position
     move_left:
         addi t0, t0, -1       ; Move left
-        bne zero, zero, update_snake_position
+        beq zero, zero, update_snake_position
     move_up:
         addi t1, t1, -1       ; Move up
-        bne zero, zero, update_snake_position
+        beq zero, zero, update_snake_position
     move_down:
         addi t1, t1, 1        ; Move down
 
