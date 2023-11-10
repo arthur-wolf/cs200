@@ -54,17 +54,8 @@ addi    sp, zero, LEDS
 ;     This procedure should never return.
 ; BEGIN:main
 main:
-    ; Initialize the snake's position at the upper left corner (0, 0)
-    addi a0, zero, 0  ; Set head x-coordinate
-    addi a1, zero, 0  ; Set head y-coordinate
-    stw a0, HEAD_X(zero)
-    stw a1, HEAD_Y(zero)
-    stw a0, TAIL_X(zero)
-    stw a1, TAIL_Y(zero)
-
-    ; Set snake's initial direction to rightwards
-    addi t0, zero, DIR_RIGHT
-    stw t0, GSA(zero)  ; Store direction in the first cell of GSA
+    ; Initialize the game state
+    call init_game
 
     ; Start the game loop
     game_loop:
@@ -80,10 +71,9 @@ main:
         ; Draw the updated game state
         call draw_array
 
-        ; Loop back to continue the game using bne for infinite loop
+        ; Loop back to continue the game using beq for infinite loop
         addi t1, zero, 0
-        addi t2, zero, 1
-        bne t1, t2, game_loop
+        beq t1, t1, game_loop
 
 ; END:main
 
@@ -100,38 +90,53 @@ clear_leds:
     ret                         ; Return
 ; END: clear_leds
 
+; BEGIN: set_pixel
 ; Arguments:
 ;     a0: x-coordinate
 ;     a1: y-coordinate
 ; Return values:
 ;     none
-; BEGIN:set_pixel
 set_pixel:
-    addi sp, sp, -20            ; push 5 registers
-    stw s0, 0(sp)               ; save s0
-    stw s1, 4(sp)               ; save s1
-    stw s2, 8(sp)               ; save s2
-    stw s3, 12(sp)              ; save s3
-    stw s4, 16(sp)              ; save s4
+    addi sp, sp, -16            ; Make room on the stack for 4 registers
+    stw ra, 0(sp)               ; Save ra
+    stw s0, 4(sp)               ; Save s0
+    stw s1, 8(sp)               ; Save s1
+    stw s2, 12(sp)              ; Save s2
 
-    andi s1, a0, 12             ; s1 = x & 12 (12 = 0b1100, mask the 2 MSB) (s1 selects the LEDS register to write to)
-    slli s0, a0, 3              ; s0 = x << 3 (8*x)
-    andi s2, s0, 31             ; s2 = s0 & 31 (31 = 0b11111, mask the 5 LSB)
-    add s2, s2, a1              ; s2 = s2 + y
-    addi s3, zero, 1            ; s3 = 1
-    sll s3, s3, s2              ; s3 = 1 << s2
-    ldw s4, LEDS(s1)            ; s4 = LEDS(s1)
-    or s3, s4, s3               ; s3 = s4 | s3
-    stw s3, LEDS(s1)            ; LEDS(s1) = s3
+    ; Calculate linear index (y * NB_COLS + x) without using 'mul'
+    slli s0, a1, 2              ; s0 = y << 2 (equivalent to y * 4)
+    add s0, s0, s0              ; s0 = s0 * 2 (equivalent to y * 8)
+    add s0, s0, a0              ; s0 = y * NB_COLS + x
 
-    ldw s4, 16(sp)              ; restore s4
-    ldw s3, 12(sp)              ; restore s3
-    ldw s2, 8(sp)               ; restore s2
-    ldw s1, 4(sp)               ; restore s1
-    ldw s0, 0(sp)               ; restore s0
-    addi sp, sp, 20             ; pop 5 registers
+    ; Calculate the address offset for the LED array
+    srai s1, s0, 5              ; s1 = s0 / 32 (find the LED array index)
+    slli s1, s1, 2              ; s1 = s1 * 4 (find the memory offset)
+
+    ; Calculate the bit position within the selected LED register
+    andi s2, s0, 0x1F           ; s2 = s0 & 31 (bit position in the register)
+    addi s0, zero, 1            ; s0 = 1 (starting bit)
+
+    loop_shift:
+        beq s2, zero, end_shift ; If s2 is 0, end the loop
+        slli s0, s0, 1          ; s0 = s0 << 1
+        addi s2, s2, -1         ; s2 = s2 - 1
+        br loop_shift
+    end_shift:
+
+    ; Set the bit in the appropriate LED register
+    ldw s2, LEDS(s1)            ; Load the current value of the LED register
+    or s0, s0, s2               ; Set the appropriate bit
+    stw s0, LEDS(s1)            ; Update the LED register
+
+    ; Restore registers and return
+    ldw s2, 12(sp)              ; Restore s2
+    ldw s1, 8(sp)               ; Restore s1
+    ldw s0, 4(sp)               ; Restore s0
+    ldw ra, 0(sp)               ; Restore ra
+    addi sp, sp, 16             ; Free up the stack space
     ret                         ; Return
-; END:set_pixel
+; END: set_pixel
+
 
 ; BEGIN:wait
 wait:
@@ -159,8 +164,27 @@ display_score:
 
 ; BEGIN: init_game
 init_game:
+    addi sp, sp, -4
+    stw ra, 0(sp)       ; Save ra
 
+    ; Set the snake's head and tail positions to the upper left corner (0, 0)
+    addi a0, zero, 0  ; a0 = 0, x-coordinate for head and tail
+    addi a1, zero, 0  ; a1 = 0, y-coordinate for head and tail
+    call set_pixel    ; Set the pixel at (0, 0) to 1
+    stw a0, HEAD_X(zero)  ; Store head x-coordinate at HEAD_X
+    stw a1, HEAD_Y(zero)  ; Store head y-coordinate at HEAD_Y
+    stw a0, TAIL_X(zero)  ; Store tail x-coordinate at TAIL_X
+    stw a1, TAIL_Y(zero)  ; Store tail y-coordinate at TAIL_Y
+
+    ; Set the snake's initial direction to rightwards
+    addi t0, zero, DIR_RIGHT  ; t0 = DIR_RIGHT
+    stw t0, GSA(zero)        ; Store the direction in the GSA
+
+    ldw ra, 0(sp)       ; Restore ra
+    addi sp, sp, 4      ; Pop ra
+    ret  ; Return from the procedure
 ; END: init_game
+
 
 
 ; BEGIN: create_food
@@ -174,50 +198,86 @@ hit_test:
 
 ; END: hit_test
 
-;Arguments:
-    ;None
-;Return values:
-    ;register v0: button state (0 -> None, 1 -> Left, 2 -> Up, 3 -> Down, 4 -> Right, 5 -> Checkpoint)
 ; BEGIN: get_input
+; Arguments:
+;     none
+; Return values:
+;     none, but updates the game state array with the new direction if needed
 get_input:
-    ldw t0, BUTTONS+4(zero)     ; t0 = BUTTONS(1)
-    stw zero, BUTTONS+4(zero)   ; BUTTONS(1) = 0
-    ; We start with b5 because we want it to have precedence over the other buttons
-    andi t1, t0, 32             ; t1 = t0 & (100000)b
-    bne t1, zero, onlyb5        ; if t1 != 0, goto onlyb5
-    andi t1, t0, 1              ; t1 = t0 & (1)b 
-    bne t1, zero, onlyb0        ; if t1 != 0, goto onlyb0
-    andi t1, t0, 2              ; t1 = t0 & (10)b
-    bne t1, zero, onlyb1        ; if t1 != 0, goto onlyb1
-    andi t1, t0, 4              ; t1 = t0 & (100)b
-    bne t1, zero, onlyb2        ; if t1 != 0, goto onlyb2
-    andi t1, t0, 8              ; t1 = t0 & (1000)b
-    bne t1, zero, onlyb3        ; if t1 != 0, goto onlyb3
-    andi t1, t0, 16             ; t1 = t0 & (10000)b
-    bne t1, zero, onlyb4        ; if t1 != 0, goto onlyb4
-    onlyb0:
-        addi v0, zero, BUTTON_NONE  ; v0 = BUTTON_NONE
-        ret
-    onlyb1:
-        addi v0, zero, BUTTON_LEFT  ; v0 = BUTTON_LEFT
-        ret
-    onlyb2:
-        addi v0, zero, BUTTON_UP    ; v0 = BUTTON_UP
-        ret
-    onlyb3:
-        addi v0, zero, BUTTON_DOWN  ; v0 = BUTTON_DOWN
-        ret
-    onlyb4:
-        addi v0, zero, BUTTON_RIGHT ; v0 = BUTTON_RIGHT
-        ret
-    onlyb5:
-        addi v0, zero, BUTTON_CHECKPOINT ; v0 = BUTTON_CHECKPOINT
+    ; Read the edgecapture register to find out which buttons were pressed
+    ldw t0, BUTTONS+4(zero)     ; t0 = edgecapture value
+
+    ; Clear the edgecapture register by writing back its value
+    stw t0, BUTTONS+4(zero)     ; Clear edgecapture
+
+    ; Check each direction button and update the game state accordingly
+    ; Make sure not to change direction if it's the opposite of the current movement
+    ; The direction is stored in the first cell of the GSA
+
+    ; Load current direction
+    ldw t1, GSA(zero)           ; t1 = current direction
+
+    check_left:
+        ; Check for left button press and if the current direction is not right
+        andi t2, t0, BUTTON_LEFT    ; t2 = is left button pressed?
+        bne t2, zero, is_left       ; if left is pressed, check if we can move left
+        br check_up                 ; go to check up button
+
+    is_left:
+        addi t3, zero, DIR_RIGHT    ; t3 = right direction
+        beq t1, t3, check_up        ; if current direction is right, ignore left button
+        stw t2, GSA(zero)           ; update direction to left
+        br get_input_done           ; skip other checks
+
+    check_up:
+        ; Check for up button press and if the current direction is not down
+        andi t2, t0, BUTTON_UP      ; t2 = is up button pressed?
+        bne t2, zero, is_up         ; if up is pressed, check if we can move up
+        br check_down               ; go to check down button
+
+    is_up:
+        addi t3, zero, DIR_DOWN     ; t3 = down direction
+        beq t1, t3, check_down      ; if current direction is down, ignore up button
+        stw t2, GSA(zero)           ; update direction to up
+        br get_input_done           ; skip other checks
+
+    check_down:
+        ; Check for down button press and if the current direction is not up
+        andi t2, t0, BUTTON_DOWN    ; t2 = is down button pressed?
+        bne t2, zero, is_down       ; if down is pressed, check if we can move down
+        br check_right              ; go to check right button
+
+    is_down:
+        addi t3, zero, DIR_UP       ; t3 = up direction
+        beq t1, t3, check_right     ; if current direction is up, ignore down button
+        stw t2, GSA(zero)           ; update direction to down
+        br get_input_done           ; skip other checks
+
+    check_right:
+        ; Check for right button press and if the current direction is not left
+        andi t2, t0, BUTTON_RIGHT   ; t2 = is right button pressed?
+        bne t2, zero, is_right      ; if right is pressed, check if we can move right
+
+    is_right:
+        addi t3, zero, DIR_LEFT     ; t3 = left direction
+        beq t1, t3, get_input_done  ; if current direction is left, ignore right button
+        stw t2, GSA(zero)           ; update direction to right
+
+    get_input_done:
         ret
 ; END: get_input
 
 
 ; BEGIN:draw_array
+; Arguments:
+;     none
+; Return values:
+;     none, but updates the LEDs to reflect the current game state
+; BEGIN: draw_array
 draw_array:
+    addi sp, sp, -4
+    stw ra, 0(sp)       ; Save ra
+
     ; Clear the display
     call clear_leds
 
@@ -238,12 +298,12 @@ draw_array:
         ; Check if all columns in the current row are processed
         beq t1, t3, update_row_counter
 
-        ; Calculate index in GSA without using mul
-        ; index = i * NB_COLS + j
-        add t4, t0, t0           ; t4 = 2 * i
-        add t4, t4, t4           ; t4 = 4 * i
-        add t4, t4, t4           ; t4 = 8 * i
-        add t4, t4, t1           ; t4 = t4 + j
+        ; Calculate index in GSA as (i * NB_COLS + j)
+        ; Since NB_COLS is 12, we use the approach: index = (i * 10 + i * 2) + j
+        slli t4, t0, 1           ; t4 = i * 2
+        add t5, t4, t0           ; t5 = i * 2 + i = i * 3
+        slli t5, t5, 2           ; t5 = i * 3 * 4 = i * 12
+        add t4, t5, t1           ; t4 = (i * 12) + j
 
         ; Load cell value from GSA
         ldw t5, GSA(t4)
@@ -270,7 +330,9 @@ draw_array:
         bne t0, t2, draw_array_loop_row
 
 end_draw_array:
-    ret
+    ldw ra, 0(sp)       ; Restore ra
+    addi sp, sp, 4      ; Pop ra
+    ret                 ; Return from the procedure
 ; END:draw_array
 
 
