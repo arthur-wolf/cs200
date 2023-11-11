@@ -55,7 +55,19 @@ addi    sp, zero, LEDS
 ; BEGIN:main
 main:
     ; Initialize the game state
-    call init_game
+    ; Set the snake's head and tail positions to the upper left corner (0, 0)
+    addi a0, zero, 0  ; a0 = 0, x-coordinate for head and tail
+    addi a1, zero, 0  ; a1 = 0, y-coordinate for head and tail
+    call set_pixel    ; Set the pixel at (0, 0) to 1
+    stw a0, HEAD_X(zero)  ; Store head x-coordinate at HEAD_X
+    stw a1, HEAD_Y(zero)  ; Store head y-coordinate at HEAD_Y
+    stw a0, TAIL_X(zero)  ; Store tail x-coordinate at TAIL_X
+    stw a1, TAIL_Y(zero)  ; Store tail y-coordinate at TAIL_Y
+
+    ; Set the snake's initial direction to rightwards
+    addi t0, zero, DIR_RIGHT  ; t0 = DIR_RIGHT
+    slli t0, t0, 2            ; t0 = t0 * 4 (shift left by 2 bits) to get the correct word in the GSA
+    stw t0, GSA(zero)         ; 
 
     ; Start the game loop
     game_loop:
@@ -164,25 +176,7 @@ display_score:
 
 ; BEGIN: init_game
 init_game:
-    addi sp, sp, -4
-    stw ra, 0(sp)       ; Save ra
 
-    ; Set the snake's head and tail positions to the upper left corner (0, 0)
-    addi a0, zero, 0  ; a0 = 0, x-coordinate for head and tail
-    addi a1, zero, 0  ; a1 = 0, y-coordinate for head and tail
-    call set_pixel    ; Set the pixel at (0, 0) to 1
-    stw a0, HEAD_X(zero)  ; Store head x-coordinate at HEAD_X
-    stw a1, HEAD_Y(zero)  ; Store head y-coordinate at HEAD_Y
-    stw a0, TAIL_X(zero)  ; Store tail x-coordinate at TAIL_X
-    stw a1, TAIL_Y(zero)  ; Store tail y-coordinate at TAIL_Y
-
-    ; Set the snake's initial direction to rightwards
-    addi t0, zero, DIR_RIGHT  ; t0 = DIR_RIGHT
-    stw t0, GSA(zero)        ; Store the direction in the GSA
-
-    ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 4      ; Pop ra
-    ret  ; Return from the procedure
 ; END: init_game
 
 
@@ -208,7 +202,7 @@ get_input:
     ldw t0, BUTTONS+4(zero)     ; t0 = edgecapture value
 
     ; Clear the edgecapture register by writing back its value
-    stw t0, BUTTONS+4(zero)     ; Clear edgecapture
+    stw zero, BUTTONS+4(zero)     ; Clear edgecapture
 
     ; Check each direction button and update the game state accordingly
     ; Make sure not to change direction if it's the opposite of the current movement
@@ -217,51 +211,76 @@ get_input:
     ; Load current direction
     ldw t1, GSA(zero)           ; t1 = current direction
 
+    check_checkpoint:
+        ; Check for checkpoint button press
+        andi t2, t0, BUTTON_CHECKPOINT  ; t2 = is checkpoint button pressed?
+        addi t3, zero, BUTTON_CHECKPOINT
+        beq t2, t3, is_checkpoint     ; if checkpoint is pressed, check if we can move checkpoint
+        br check_left                   ; if not, go to check left button
+
+    is_checkpoint:
+        stw t2, GSA(zero)               ; update direction to checkpoint
+        addi v0, zero, 5                ; set v0 to 5 to indicate checkpoint
+        br get_input_done               ; skip other checks and end procedure
+
     check_left:
         ; Check for left button press and if the current direction is not right
         andi t2, t0, BUTTON_LEFT    ; t2 = is left button pressed?
-        bne t2, zero, is_left       ; if left is pressed, check if we can move left
-        br check_up                 ; go to check up button
+        addi t3, zero, BUTTON_LEFT
+        beq t2, t3, is_left       ; if left is pressed, check if we can move left
+        br check_up                 ; if not, go to check up button
 
     is_left:
         addi t3, zero, DIR_RIGHT    ; t3 = right direction
         beq t1, t3, check_up        ; if current direction is right, ignore left button
         stw t2, GSA(zero)           ; update direction to left
-        br get_input_done           ; skip other checks
+        addi v0, zero, 1            ; set v0 to 1 to indicate left
+        br get_input_done           ; skip other checks and end procedure
 
     check_up:
         ; Check for up button press and if the current direction is not down
         andi t2, t0, BUTTON_UP      ; t2 = is up button pressed?
-        bne t2, zero, is_up         ; if up is pressed, check if we can move up
-        br check_down               ; go to check down button
+        addi t3, zero, BUTTON_UP
+        bne t2, BUTTON_UP, is_up         ; if up is pressed, check if we can move up
+        br check_down               ; if not, go to check down button
 
     is_up:
         addi t3, zero, DIR_DOWN     ; t3 = down direction
         beq t1, t3, check_down      ; if current direction is down, ignore up button
         stw t2, GSA(zero)           ; update direction to up
-        br get_input_done           ; skip other checks
+        addi v0, zero, 2            ; set v0 to 2 to indicate up
+        br get_input_done           ; skip other checks and end procedure
 
     check_down:
         ; Check for down button press and if the current direction is not up
         andi t2, t0, BUTTON_DOWN    ; t2 = is down button pressed?
-        bne t2, zero, is_down       ; if down is pressed, check if we can move down
+        addi t3, zero, BUTTON_DOWN
+        bne t2, t3, is_down       ; if down is pressed, check if we can move down
         br check_right              ; go to check right button
 
     is_down:
         addi t3, zero, DIR_UP       ; t3 = up direction
         beq t1, t3, check_right     ; if current direction is up, ignore down button
         stw t2, GSA(zero)           ; update direction to down
-        br get_input_done           ; skip other checks
+        addi v0, zero, 3            ; set v0 to 3 to indicate down
+        br get_input_done           ; skip other checks and end procedure
 
     check_right:
         ; Check for right button press and if the current direction is not left
         andi t2, t0, BUTTON_RIGHT   ; t2 = is right button pressed?
-        bne t2, zero, is_right      ; if right is pressed, check if we can move right
+        addi t3, zero, BUTTON_RIGHT
+        bne t2, t3, is_right      ; if right is pressed, check if we can move right
+        br none_pressed             ; if not, go to none_pressed
 
     is_right:
         addi t3, zero, DIR_LEFT     ; t3 = left direction
         beq t1, t3, get_input_done  ; if current direction is left, ignore right button
+        addi v0, zero, 4            ; set v0 to 4 to indicate right
         stw t2, GSA(zero)           ; update direction to right
+
+    none_pressed:
+        addi v0, zero, 0            ; set v0 to 0 to indicate no button was pressed
+        br get_input_done           ; end procedure
 
     get_input_done:
         ret
