@@ -49,47 +49,62 @@ addi    sp, zero, LEDS
 ; main
 ; arguments
 ;     none
-;
 ; return values
 ;     This procedure should never return.
 ; BEGIN:main
 main:
-    ; Initialize the game state
-    ; Set the snake's head and tail positions to the upper left corner (0, 0)
-    addi a0, zero, 0  ; a0 = 0, x-coordinate for head and tail
-    addi a1, zero, 0  ; a1 = 0, y-coordinate for head and tail
-    call set_pixel    ; Set the pixel at (0, 0) to 1
-    stw a0, HEAD_X(zero)  ; Store head x-coordinate at HEAD_X
-    stw a1, HEAD_Y(zero)  ; Store head y-coordinate at HEAD_Y
-    stw a0, TAIL_X(zero)  ; Store tail x-coordinate at TAIL_X
-    stw a1, TAIL_Y(zero)  ; Store tail y-coordinate at TAIL_Y
+    stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
 
-    ; Set the snake's initial direction to rightwards
-    addi t0, zero, DIR_RIGHT  ; t0 = DIR_RIGHT
-    slli t0, t0, 2            ; t0 = t0 * 4 (shift left by 2 bits) to get the correct word in the GSA
-    stw t0, GSA(zero)         ; 
-
-    ; Start the game loop
-    game_loop:
-        ; Clear the display
-        call clear_leds
-
-        ; Get player input
+    m_init_game:
+        call init_game              ; Initialize the game
+    
+    m_get_input:
         call get_input
+        addi t0, zero, 5                    ; t0 = 5 (checkpoint button return value)
+        beq v0, t0, m_restore_checkpoint    ; If v0 is 5, restore checkpoint
+        br m_hit_test                       ; Otherwise, continue to hit_test
 
-        ; Move the snake based on the current direction and input
+    m_hit_test:
+        call hit_test   ; ate food -> v0 = 1, collision -> v0 = 2, otherwise -> v0 = 0
+        addi t0, zero, RET_ATE_FOOD     ; t0 = 1
+        beq v0, t0, m_food_eaten          ; If v0 is 1, go to food_eaten
+        addi t0, zero, RET_COLLISION    ; t0 = 2
+        beq v0, t0, m_init_game         ; If v0 is 2, go to init_game
+        br m_move_snake_no_food         ; Otherwise, continue to move_snake_no_food
+
+    m_food_eaten:
+        update_score:
+            ldw t0, SCORE(zero)     ; Load the current score
+            addi t0, t0, 1          ; Increment the score
+            stw t0, SCORE(zero)     ; Store the new score
+        
+        call display_score          ; Display the new score
+        call move_snake             ; Move the snake
+        call create_food            ; Create a new piece of food
+        br m_save_checkpoint       ; Save checkpoint
+    
+    m_save_checkpoint:
+        call save_checkpoint
+        beq v0, zero, m_clear_and_draw ; If a checkpoint was not saved, go back to clear_and_draw
+        br m_blink_score               ; If one was saved, blink the score
+
+    m_move_snake_no_food:
         call move_snake
+        br m_clear_and_draw
 
-        ; Draw the updated game state
+    m_clear_and_draw:
+        call clear_leds
         call draw_array
+        br m_get_input
+    
+    m_restore_checkpoint:
+        call restore_checkpoint
+        beq v0, zero, m_get_input   ; If checkpoint is invalid, go back to get_input
+        br m_blink_score            ; else blink the score if the checkpoint is valid
 
-        ; Display the score
-        call display_score
-
-        ; Loop back to continue the game using beq for infinite loop
-        addi t1, zero, 0
-        beq t1, t1, game_loop
-
+    m_blink_score:
+        call blink_score            ; blink the score
+        br m_clear_and_draw         ; go back to clear_and_draw    
 ; END:main
 
 
