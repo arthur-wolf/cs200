@@ -72,16 +72,16 @@ main:
     ; Start the game loop
     game_loop:
         ; Clear the display
-        ;call clear_leds
+        call clear_leds
 
         ; Get player input
-        ;call get_input
+        call get_input
 
         ; Move the snake based on the current direction and input
-        ;call move_snake
+        call move_snake
 
         ; Draw the updated game state
-        ;call draw_array
+        call draw_array
 
         ; Display the score
         call display_score
@@ -163,8 +163,7 @@ wait:
 
     wait_loop:                  ; wait_loop:
         addi s0, s0, -1         ;   s0 = s0 - 1
-        bne s0, zero, wait_loop
-    ;   if s0 != 0, goto wait_loop
+        bne s0, zero, wait_loop ;   if s0 != 0, goto wait_loop
 
 
     ldw s0, 0(sp)               ; restore s0
@@ -249,9 +248,55 @@ display_score:
 
 ; BEGIN: init_game
 init_game:
+    addi sp, sp, -12
+    stw ra, 0(sp)       ; Save ra
+    stw t0, 4(sp)       ; Save t0
+    stw t1, 8(sp)       ; Save t1
 
+    ; Clear the display
+    call clear_leds
+
+    clean_up:
+        ; Clear the game state array
+        addi t0, zero, 0
+        addi t1, zero, NB_CELLS
+        clean_up_loop:
+            beq t0, t1, end_clean_up
+            stw zero, GSA(t0)
+            addi t0, t0, 1
+            br clean_up_loop
+        end_clean_up:
+
+    ; Initialize the snake's position at the upper left corner (0, 0)
+    addi t0, zero, 0  ; Set head x-coordinate to 0
+    addi t1, zero, 0  ; Set head y-coordinate to 0
+    stw t0, HEAD_X(zero)
+    stw t1, HEAD_Y(zero)
+    stw t0, TAIL_X(zero)
+    stw t1, TAIL_Y(zero)
+
+    ; Set snake's initial direction to rightwards
+    addi t0, zero, DIR_RIGHT
+    stw t0, GSA(zero)  ; Store direction in the first cell of GSA since it's the head's position
+
+    ; Initialize score to 0
+    addi t0, zero, 0
+    stw t0, SCORE(zero)
+
+    ; Make a piece of food appear on the display
+    call create_food
+
+    ; Draw the initial game state
+    call draw_array
+
+    end_init_game:
+        stw t1, 8(sp)       ; Restore t1
+        stw t0, 4(sp)       ; Restore t0
+        ldw ra, 0(sp)       ; Restore ra
+        addi sp, sp, 12     ; Pop registers
+
+        ret  ; Return from init_game
 ; END: init_game
-
 
 
 ; BEGIN: create_food
