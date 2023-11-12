@@ -72,16 +72,19 @@ main:
     ; Start the game loop
     game_loop:
         ; Clear the display
-        call clear_leds
+        ;call clear_leds
 
         ; Get player input
-        call get_input
+        ;call get_input
 
         ; Move the snake based on the current direction and input
-        call move_snake
+        ;call move_snake
 
         ; Draw the updated game state
-        call draw_array
+        ;call draw_array
+
+        ; Display the score
+        call display_score
 
         ; Loop back to continue the game using beq for infinite loop
         addi t1, zero, 0
@@ -152,6 +155,7 @@ set_pixel:
 
 ; BEGIN:wait
 wait:
+    addi sp, sp, -4             ; push s0
     stw s0, 0(sp)               ; save s0
 
     addi s0, zero, 1            ; s0 = 1
@@ -170,8 +174,59 @@ wait:
 
 ; BEGIN: display_score
 display_score:
+    ldw t0, SCORE(zero)  ; Load the score into register t0
 
+    ; Display 0 on the two leftmost 7-segment displays (displays 0 and 1)
+    addi t1, zero, SEVEN_SEGS
+    addi t2, zero, 0xFC  ; 7-segment code for 0
+    stw t2, 0(t1)        ; Display 0 on display 0
+    stw t2, 4(t1)        ; Display 0 on display 1
+
+    ; Extract the value of the tens from the score
+    addi t3, zero, 10    ; t3 = 10
+    addi t4, zero, 0     ; t4 will be the tens digit
+    addi t5, zero, 0     ; t5 will be the ones digit
+
+    tens_loop:               ; count the number of tens in t0
+        sub t6, t0, t3       ; t6 = t0 - 10
+        bge t6, zero, tens_update
+        br ones_digit        ; tens have been counted and their amount is stored in t4
+    tens_update:
+        addi t4, t4, 1       ; Increment tens digit
+        addi t0, t0, -10     ; Subtract 10 from score
+        br tens_loop
+
+    ones_digit:
+        add t5, t0, zero     ; t5 = t0 (ones digit) (t0 now is between 0 and 9 from the tens step)
+
+    display_tens:
+        slli t4, t4, 2          ; t4 = t4 * 4 (shift left by 2 bits) to get the correct word offset
+        ldw t6, digit_map(t4)   ; t6 = 7-segment code for tens digit
+        stw t6, SEVEN_SEGS+8(zero)      ; Display tens digit on the 3rd display
+        
+    display_ones:
+        slli t5, t5, 2          ; t5 = t5 * 4 (shift left by 2 bits) to get the correct word offset
+        ldw t6, digit_map(t5)  ; t6 = 7-segment code for ones digit
+        stw t6, SEVEN_SEGS+12(zero)     ; Display ones digit on the 4th display
+        br end_display_score
+
+    digit_map:
+    .word 0xFC  ; 0
+    .word 0x60  ; 1
+    .word 0xDA  ; 2
+    .word 0xF2  ; 3
+    .word 0x66  ; 4
+    .word 0xB6  ; 5
+    .word 0xBE  ; 6
+    .word 0xE0  ; 7
+    .word 0xFE  ; 8
+    .word 0xF6  ; 9
+
+    end_display_score:
+        ret
 ; END: display_score
+
+; Lookup table for digit to 7-segment conversion
 
 
 ; BEGIN: init_game
