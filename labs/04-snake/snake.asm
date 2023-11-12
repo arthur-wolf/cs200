@@ -198,9 +198,10 @@ hit_test:
 ; Return values:
 ;     none, but updates the game state array with the new direction if needed
 get_input:
+    addi v0, zero, 0            ; v0 = 0 (default return value)
+    
     ; Read the edgecapture register to find out which buttons were pressed
     ldw t0, BUTTONS+4(zero)     ; t0 = edgecapture value
-
     ; Clear the edgecapture register by writing back its value
     stw zero, BUTTONS+4(zero)     ; Clear edgecapture
 
@@ -212,11 +213,12 @@ get_input:
     ldw t1, GSA(zero)           ; t1 = current direction
 
     check_checkpoint:
-        ; Check for checkpoint button press
-        andi t2, t0, BUTTON_CHECKPOINT  ; t2 = is checkpoint button pressed?
-        addi t3, zero, BUTTON_CHECKPOINT
-        beq t2, t3, is_checkpoint     ; if checkpoint is pressed, check if we can move checkpoint
-        br check_left                   ; if not, go to check left button
+        ; Check for checkpoint button press, i.e. is the 4th bit set?
+        addi t2, zero, 16           ; t2 = 0b00010000
+        and t2, t0, t2              ; t2 = t0 & t2 (is the 4th bit set?)
+        ; at this point if t2 is 0, then checkpoint button is not pressed
+        beq t2, zero, check_left    ; if t2 is 0, go to check left button
+        br is_checkpoint            ; if t2 is not 0, go to is_checkpoint 
 
     is_checkpoint:
         stw t2, GSA(zero)               ; update direction to checkpoint
@@ -224,11 +226,12 @@ get_input:
         br get_input_done               ; skip other checks and end procedure
 
     check_left:
-        ; Check for left button press and if the current direction is not right
-        andi t2, t0, BUTTON_LEFT    ; t2 = is left button pressed?
-        addi t3, zero, BUTTON_LEFT
-        beq t2, t3, is_left       ; if left is pressed, check if we can move left
-        br check_up                 ; if not, go to check up button
+        ; Check for left button press, i.e. is the 0th bit pressed
+        addi t2, zero, 1            ; t2 = 0b00000001
+        and t2, t0, t2              ; t2 = t0 & t2 (is the 0th bit set?)
+        ; at this point if t2 is 0, then left button is not pressed
+        beq t2, zero, check_up      ; if t2 is 0, go to check up button
+        br is_left                  ; if t2 is not 0, go to is_left
 
     is_left:
         addi t3, zero, DIR_RIGHT    ; t3 = right direction
@@ -238,11 +241,12 @@ get_input:
         br get_input_done           ; skip other checks and end procedure
 
     check_up:
-        ; Check for up button press and if the current direction is not down
-        andi t2, t0, BUTTON_UP      ; t2 = is up button pressed?
-        addi t3, zero, BUTTON_UP
-        bne t2, BUTTON_UP, is_up         ; if up is pressed, check if we can move up
-        br check_down               ; if not, go to check down button
+        ; Check for up button press, i.e. is the 1st bit set?
+        addi t2, zero, 2            ; t2 = 0b00000010
+        and t2, t0, t2              ; t2 = t0 & t2 (is the 1st bit set?)
+        ; at this point if t2 is 0, then up button is not pressed
+        beq t2, zero, check_down    ; if t2 is 0, go to check down button
+        br is_up                    ; if t2 is not 0, go to is_up
 
     is_up:
         addi t3, zero, DIR_DOWN     ; t3 = down direction
@@ -252,11 +256,12 @@ get_input:
         br get_input_done           ; skip other checks and end procedure
 
     check_down:
-        ; Check for down button press and if the current direction is not up
-        andi t2, t0, BUTTON_DOWN    ; t2 = is down button pressed?
-        addi t3, zero, BUTTON_DOWN
-        bne t2, t3, is_down       ; if down is pressed, check if we can move down
-        br check_right              ; go to check right button
+        ; Check for down button press, i.e. is the 2nd bit set?
+        addi t2, zero, 4            ; t2 = 0b00000100
+        and t2, t0, t2              ; t2 = t0 & t2 (is the 2nd bit set?)
+        ; at this point if t2 is 0, then down button is not pressed
+        beq t2, zero, check_right   ; if t2 is 0, go to check right button
+        br is_down                  ; if t2 is not 0, go to is_down
 
     is_down:
         addi t3, zero, DIR_UP       ; t3 = up direction
@@ -266,17 +271,19 @@ get_input:
         br get_input_done           ; skip other checks and end procedure
 
     check_right:
-        ; Check for right button press and if the current direction is not left
-        andi t2, t0, BUTTON_RIGHT   ; t2 = is right button pressed?
-        addi t3, zero, BUTTON_RIGHT
-        bne t2, t3, is_right      ; if right is pressed, check if we can move right
-        br none_pressed             ; if not, go to none_pressed
+        ; Check for right button press, i.e. is the 3rd bit set?
+        addi t2, zero, 8            ; t2 = 0b00001000
+        and t2, t0, t2              ; t2 = t0 & t2 (is the 3rd bit set?)
+        ; at this point if t2 is 0, then right button is not pressed
+        beq t2, zero, none_pressed  ; if t2 is 0, go to none_pressed
+        br is_right                 ; if t2 is not 0, go to is_right
 
     is_right:
         addi t3, zero, DIR_LEFT     ; t3 = left direction
         beq t1, t3, get_input_done  ; if current direction is left, ignore right button
         addi v0, zero, 4            ; set v0 to 4 to indicate right
         stw t2, GSA(zero)           ; update direction to right
+        br get_input_done           ; skip other checks and end procedure
 
     none_pressed:
         addi v0, zero, 0            ; set v0 to 0 to indicate no button was pressed
