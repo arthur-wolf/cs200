@@ -174,6 +174,16 @@ wait:
 
 ; BEGIN: display_score
 display_score:
+    addi sp, sp, -32
+    stw ra, 0(sp)       ; Save ra
+    stw t0, 4(sp)       ; Save t0
+    stw t1, 8(sp)       ; Save t1
+    stw t2, 12(sp)      ; Save t2
+    stw t3, 16(sp)      ; Save t3
+    stw t4, 20(sp)      ; Save t4
+    stw t5, 24(sp)      ; Save t5
+    stw t6, 28(sp)      ; Save t6
+
     ldw t0, SCORE(zero)  ; Load the score into register t0
 
     ; Display 0 on the two leftmost 7-segment displays (displays 0 and 1)
@@ -223,10 +233,18 @@ display_score:
     .word 0xF6  ; 9
 
     end_display_score:
+        ldw t6, 28(sp)      ; Restore t6
+        ldw t5, 24(sp)      ; Restore t5
+        ldw t4, 20(sp)      ; Restore t4
+        ldw t3, 16(sp)      ; Restore t3
+        ldw t2, 12(sp)      ; Restore t2
+        ldw t1, 8(sp)       ; Restore t1
+        ldw t0, 4(sp)       ; Restore t0
+        ldw ra, 0(sp)       ; Restore ra
+        addi sp, sp, 32     ; Pop registers
+
         ret
 ; END: display_score
-
-; Lookup table for digit to 7-segment conversion
 
 
 ; BEGIN: init_game
@@ -490,5 +508,44 @@ restore_checkpoint:
 
 ; BEGIN: blink_score
 blink_score:
+    addi sp, sp, -16            ; Push ra, t0, t1
+    stw ra, 0(sp)               ; Save ra
+    stw t0, 4(sp)               ; Save t0
+    stw t1, 8(sp)               ; Save t1
+    stw t2, 12(sp)              ; Save t2
 
+    ldw t0, SEVEN_SEGS(zero)    ; Load the address of the 7-segment display
+    addi t1, zero, 0            ; t1 = 0 (loop counter)   
+
+    blink_loop:                     ; blinks 3 times
+        addi t2, zero, 3            ; t2 = 3
+        beq t1, t2, end_blink_score  ; If t1 is 3, end the loop
+        call blink                  ; Blink the score once
+        addi t1, t1, 1              ; Increment loop counter
+        br blink_loop               ; Loop back to blink_loop
+
+    blink:                      ; blinks once
+        call turn_displays_off  ; Turn off all displays
+        call wait               ; Wait for 1 second
+        call turn_displays_on   ; Turn on all displays
+        call wait               ; Wait for 1 second
+        ret                     ; Return from the procedure
+    
+    turn_displays_off:
+        stw zero, 0(t0)     ; Turn off the 1st display
+        stw zero, 4(t0)     ; Turn off the 2nd display
+        stw zero, 8(t0)     ; Turn off the 3rd display
+        stw zero, 12(t0)    ; Turn off the 4th display
+
+    turn_displays_on:
+        call display_score  ; Display the score
+
+    end_blink_score:
+        ldw t2, 12(sp)      ; Restore t2
+        ldw t1, 8(sp)       ; Restore t1
+        ldw t0, 4(sp)       ; Restore t0
+        ldw ra, 0(sp)        ; Restore ra
+        addi sp, sp, 16     ; Pop ra, t0, t1
+
+        ret                 ; Return from the procedure
 ; END: blink_score
