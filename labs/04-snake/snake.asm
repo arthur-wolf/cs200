@@ -315,8 +315,47 @@ init_game:
 
 
 ; BEGIN: create_food
+; Generates and places food in a random location on the game field
 create_food:
+    addi sp, sp, -16
+    stw ra, 0(sp)       ; Save ra
+    stw t0, 4(sp)       ; Save t0
+    stw t1, 8(sp)       ; Save t1
+    stw t2, 12(sp)      ; Save t2
+    stw t3, 16(sp)      ; Save t3
 
+    ldw t3, NB_CELLS(zero)  ; t3 = NB_CELLS
+    
+    get_random_index:
+        ; Load a random number
+        ldw t0, RANDOM_NUM(zero) 
+
+        ; Extract the lowest byte to use as the index in GSA
+        slli t1, t0, 24       ; Shift left by 24 bits, moving the lowest byte to the highest
+        srli t1, t1, 24       ; Shift right by 24 bits, moving the byte back to its original position
+
+        ; Check if the index is within the bounds of the game state array
+        bge t1, t3, get_random_index  ; If t1 >= NB_CELLS, get a new random number
+        slli t2, t1, 2        ; t2 = t1 * 4 (shift left by 2 bits to get the correct word offset)
+        ldw t2, GSA(t1)       ; Load the value at the calculated index
+        beq t2, zero, valid_index  ; If the cell is empty, go to valid_index
+        br get_random_index   ; Otherwise, get a new random number
+
+    valid_index:
+        ; Store the food location in the game state array (GSA)
+        addi t2, zero, FOOD  ; t2 = FOOD
+        stw t2, GSA(t1)      ; Place food in GSA at the calculated index
+        br end_create_food
+
+    end_create_food:
+    ldw t3, 16(sp)      ; Restore t3
+    ldw t2, 12(sp)      ; Restore t2
+    ldw t1, 8(sp)       ; Restore t1
+    ldw t0, 4(sp)       ; Restore t0
+    ldw ra, 0(sp)       ; Restore ra
+    addi sp, sp, 16     ; Pop registers
+
+    ret  ; Return from create_food
 ; END: create_food
 
 
@@ -434,8 +473,18 @@ get_input:
 ;     none, but updates the LEDs to reflect the current game state
 ; BEGIN: draw_array
 draw_array:
-    addi sp, sp, -4
+    addi sp, sp, -44    ; Push registers onto stack
     stw ra, 0(sp)       ; Save ra
+    stw t0, 4(sp)       ; Save t0
+    stw t1, 8(sp)       ; Save t1
+    stw t2, 12(sp)      ; Save t2
+    stw t3, 16(sp)      ; Save t3
+    stw t4, 20(sp)      ; Save t4
+    stw t5, 24(sp)      ; Save t5
+    stw t6, 28(sp)      ; Save t6
+    stw t7, 32(sp)      ; Save t7
+    stw a0, 36(sp)      ; Save a0
+    stw a1, 40(sp)      ; Save a1
 
     ; Clear the display
     call clear_leds
@@ -489,8 +538,19 @@ draw_array:
         bne t0, t2, draw_array_loop_row
 
 end_draw_array:
+    ldw a1, 40(sp)      ; Restore a1
+    ldw a0, 36(sp)      ; Restore a0
+    ldw t7, 32(sp)      ; Restore t7
+    ldw t6, 28(sp)      ; Restore t6
+    ldw t5, 24(sp)      ; Restore t5
+    ldw t4, 20(sp)      ; Restore t4
+    ldw t3, 16(sp)      ; Restore t3
+    ldw t2, 12(sp)      ; Restore t2
+    ldw t1, 8(sp)       ; Restore t1
+    ldw t0, 4(sp)       ; Restore t0
     ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 4      ; Pop ra
+    addi sp, sp, 44     ; Pop registers from stack
+
     ret                 ; Return from the procedure
 ; END:draw_array
 
