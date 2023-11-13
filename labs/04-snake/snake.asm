@@ -688,7 +688,53 @@ move_snake:
 
 ; BEGIN:save_checkpoint
 save_checkpoint:
+        ldw t0, SCORE(zero) ; Load the score into register t0
+        addi t1, zero, 10   ; t1 = minimum checkpoint score
 
+    checkpoint_mod:
+        blt t0, t1, checkpoint_check ; If score < 10, don't save checkpoint
+        addi t0, t0, -10             ; Subtract 10 from score
+        br checkpoint_mod            ; Loop back until score < 10
+
+    checkpoint_check:  
+        ldw t3, SCORE(zero)               ; Load the score into register t3
+        beq t3, zero, checkpoint_no_save  ; If score is 0, don't save checkpoint
+        beq t0, zero, checkpoint_save     ; If score is a multiple of 10, save checkpoint
+        br checkpoint_no_save             ; Otherwise, don't save checkpoint
+
+    checkpoint_save:
+        addi t4, zero, 1        ; t4 = 1 (save checkpoint)
+        stw t4, CP_VALID(zero)  ; Store 1 in CP_VALID to indicate that a checkpoint is saved
+
+        ldw t3, HEAD_X(zero)    ; Load head's x-coordinate
+        stw t3, CP_HEAD_X(zero) ; Store the new head x-coordinate
+        ldw t3, HEAD_Y(zero)    ; Load head's y-coordinate
+        stw t3, CP_HEAD_Y(zero) ; Store the new head y-coordinate
+
+        ldw t3, TAIL_X(zero)    ; Load tail's x-coordinate
+        stw t3, CP_TAIL_X(zero) ; Store the new tail x-coordinate
+        ldw t3, TAIL_Y(zero)    ; Load tail's y-coordinate
+        stw t3, CP_TAIL_Y(zero) ; Store the new tail y-coordinate
+
+        ldw t3, SCORE(zero)     ; Load the score into register t3
+        stw t3, CP_SCORE(zero)  ; Store the score
+
+        addi t0, zero, 0        ; t0 = 0 (counter for cells) -> t0 is the cell number
+        addi t1, zero, 0        ; t1 = 0 (counter for GSA index)
+        addi t2, zero, NB_CELLS ; t2 = NB_CELLS
+    checkpoint_gsa:
+        ldw t3, GSA(t0)             ; Load the value at the GSA index
+        stw t3, CP_GSA(t0)          ; Store the value in the checkpoint GSA
+        addi t0, t0, 4              ; Increment counter for cells
+        addi t1, t1, 1              ; Increment counter for GSA index
+        blt t1, t2, checkpoint_gsa  ; while counter < NB_CELLS, loop back to checkpoint_gsa
+
+        addi v0, zero, 1    ; v0 = 1 (checkpoint saved)
+        ret
+
+    checkpoint_no_save:
+        addi v0, zero, 0    ; v0 = 0 (no checkpoint saved)
+        ret
 ; END:save_checkpoint
 
 
