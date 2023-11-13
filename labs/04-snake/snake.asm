@@ -740,7 +740,41 @@ save_checkpoint:
 
 ; BEGIN:restore_checkpoint
 restore_checkpoint:
+        addi t0, zero, 1                ; t0 = 1 (restore checkpoint)
+        ldw t1, CP_VALID(zero)          ; Load the value at CP_VALID
+        beq t1, t0, restore_valid       ; If CP_VALID is 1, restore checkpoint
+        beq t1, zero, restore_invalid   ; If CP_VALID is 0, don't restore checkpoint
 
+    restore_valid:
+        ldw t3, CP_HEAD_X(zero)     ; Load head's x-coordinate
+        stw t3, HEAD_X(zero)        ; Store the saved head x-coordinate
+        ldw t3, CP_HEAD_Y(zero)     ; Load head's y-coordinate
+        stw t3, HEAD_Y(zero)        ; Store the saved head y-coordinate
+        
+        ldw t3, CP_TAIL_X(zero)     ; Load tail's x-coordinate
+        stw t3, TAIL_X(zero)        ; Store the saved tail x-coordinate
+        ldw t3, CP_TAIL_Y(zero)     ; Load tail's y-coordinate
+        stw t3, TAIL_Y(zero)        ; Store the saved tail y-coordinate
+
+        ldw t3, CP_SCORE(zero)      ; Load the score into register t3
+        stw t3, SCORE(zero)         ; Store the score
+
+        addi t0, zero, 0            ; t0 = 0 (counter for cells) -> t0 is the cell number
+        addi t1, zero, 0            ; t1 = 0 (counter for GSA index)
+        addi t2, zero, NB_CELLS     ; t2 = NB_CELLS
+    restore_gsa:
+        ldw t3, CP_GSA(t0)      ; Load the value at the checkpoint GSA index
+        stw t3, GSA(t0)         ; Store the value in the GSA
+        addi t0, t0, 4          ; Increment counter for cells
+        addi t1, t1, 1          ; Increment counter for GSA index
+        blt t1, t2, restore_gsa ; while counter < NB_CELLS, loop back to restore_gsa
+
+        addi v0, zero, 1    ; v0 = 1 (checkpoint restored)
+        ret
+
+    restore_invalid:
+        addi v0, zero, 0    ; v0 = 0 (no checkpoint restored)
+        ret
 ; END:restore_checkpoint
 
 
