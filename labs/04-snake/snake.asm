@@ -49,6 +49,33 @@ addi    sp, zero, LEDS
 
 ; BEGIN:main
 main:
+    
+    ; Initialize the snake's position at the upper left corner (0, 0)
+    addi t0, zero, 0  ; Set head x-coordinate to 0
+    addi t1, zero, 0  ; Set head y-coordinate to 0
+    stw t0, HEAD_X(zero)
+    stw t1, HEAD_Y(zero)
+    stw t0, TAIL_X(zero)
+    stw t1, TAIL_Y(zero)
+
+    ; Set snake's initial direction to rightwards
+    addi t0, zero, DIR_RIGHT
+    slli t0, t0, 2     ; t0 = t0 * 4 (shift left by 2 bits to get the correct word offset)
+    stw t0, GSA(zero)  ; Store direction in the first cell of GSA since it's the head's position
+
+    ; Initialize score to 0
+    addi t0, zero, 0
+    stw t0, SCORE(zero)
+
+    main_loop:
+        call clear_leds
+        call move_snake
+        call draw_array
+        br main_loop
+
+
+
+
     stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
 
     m_init_game:
@@ -322,11 +349,11 @@ create_food:
         srli t1, t1, 24       ; Shift right by 24 bits, moving the byte back to its original position
 
         ; Check if the index is within the bounds of the game state array
-        bge t1, t3, get_random_index  ; If t1 >= NB_CELLS, get a new random number
-        slli t2, t1, 2        ; t2 = t1 * 4 (shift left by 2 bits to get the correct word offset)
-        ldw t2, GSA(t1)       ; Load the value at the calculated index
-        beq t2, zero, valid_index  ; If the cell is empty, go to valid_index
-        br get_random_index   ; Otherwise, get a new random number
+        bge t1, t3, get_random_index    ; If t1 >= NB_CELLS, get a new random number
+        slli t2, t1, 2                  ; t2 = t1 * 4 (shift left by 2 bits to get the correct word offset)
+        ldw t2, GSA(t1)                 ; Load the value at the calculated index
+        beq t2, zero, valid_index       ; If the cell is empty, go to valid_index
+        br get_random_index             ; Otherwise, get a new random number
 
     valid_index:
         ; Store the food location in the game state array (GSA)
@@ -547,85 +574,43 @@ get_input:
 
 ; BEGIN:draw_array
 draw_array:
-    addi sp, sp, -44    ; Push registers onto stack
-    stw ra, 0(sp)       ; Save ra
-    stw t0, 4(sp)       ; Save t0
-    stw t1, 8(sp)       ; Save t1
-    stw t2, 12(sp)      ; Save t2
-    stw t3, 16(sp)      ; Save t3
-    stw t4, 20(sp)      ; Save t4
-    stw t5, 24(sp)      ; Save t5
-    stw t6, 28(sp)      ; Save t6
-    stw t7, 32(sp)      ; Save t7
-    stw a0, 36(sp)      ; Save a0
-    stw a1, 40(sp)      ; Save a1
+    addi sp, sp, -20            ; Push ra, t0, t1, t2, t3
+    stw ra, 0(sp)               ; Save ra
+    stw t0, 4(sp)               ; Save t0
+    stw t1, 8(sp)               ; Save t1
+    stw t2, 12(sp)              ; Save t2
+    stw t3, 16(sp)              ; Save t3
 
-    ; Clear the display
-    call clear_leds
 
-    ; Initialize loop counters
-    addi t0, zero, 0        ; t0 = i (Row counter, initialized to 0)
-    addi t1, zero, 0        ; t1 = j (Column counter, initialized to 0)
-    addi t2, zero, NB_ROWS  ; t2 = Total number of rows
-    addi t3, zero, NB_COLS  ; t3 = Total number of columns
+    addi t0, zero, 0            ; t0 = 0 (counter for cells) -> t0 is the cell number
+    addi t1, zero, NB_CELLS     ; t1 = NB_CELLS
 
-    draw_array_loop_row:
-        ; Check if all rows are processed
-        beq t0, t2, end_draw_array
+    loop_array:
+        beq t0, t1, end_draw_array  ; If counter equals NB_CELLS, end the loop
+        slli t2, t0, 2              ; t2 = t0 * 4 (shift left by 2 bits to get the correct word offset)
+        ldw t3, GSA(t2)             ; Load the value at the calculated index
+        beq t3, zero, next_pixel    ; If the cell is empty, skip drawing
+        br draw_pixel               ; Otherwise, draw the pixel
 
-        ; Reset column counter for new row
-        addi t1, zero, 0
-
-    draw_array_loop_col:
-        ; Check if all columns in the current row are processed
-        beq t1, t3, update_row_counter
-
-        ; Calculate index in GSA as (i * NB_COLS + j)
-        ; Since NB_COLS is 12, we use the approach: index = (i * 10 + i * 2) + j
-        slli t4, t0, 1           ; t4 = i * 2
-        add t5, t4, t0           ; t5 = i * 2 + i = i * 3
-        slli t5, t5, 2           ; t5 = i * 3 * 4 = i * 12
-        add t4, t5, t1           ; t4 = (i * 12) + j
-
-        ; Load cell value from GSA
-        ldw t5, GSA(t4)
-
-        ; Check if the cell is part of the snake or food
-        addi t6, zero, FOOD
-        beq t5, t6, draw_pixel     ; If cell is food, draw pixel
-        beq t5, zero, skip_pixel   ; If cell is empty, skip to next column
-
-        ; Otherwise, it's part of the snake, so draw pixel
     draw_pixel:
-        addi a0, t1, 0   ; a0 = t1 (Set x-coordinate)
-        addi a1, t0, 0   ; a1 = t0 (Set y-coordinate)
-        call set_pixel
+        srai a0, t0, 3              ; a0 = t0 / 8 (find the LED array index) -> a0 = x coordinate
+        andi a1, t0, 0x7            ; a1 = t0 & 7 (bit position in the register) -> a1 = y coordinate
+        call set_pixel              ; Set the pixel at the calculated coordinates
+        br next_pixel               ; Continue to the next pixel
 
-    skip_pixel:
-        ; Move to the next column
-        addi t1, t1, 1
-        bne t1, t3, draw_array_loop_col
+    next_pixel:
+        addi t0, t0, 1              ; Increment counter
+        br loop_array               ; Loop back to loop_array
 
-    update_row_counter:
-        ; Move to the next row
-        addi t0, t0, 1
-        bne t0, t2, draw_array_loop_row
+    end_draw_array:
+        ldw t3, 16(sp)      ; Restore t3
+        ldw t2, 12(sp)      ; Restore t2
+        ldw t1, 8(sp)       ; Restore t1
+        ldw t0, 4(sp)       ; Restore t0
+        ldw ra, 0(sp)       ; Restore ra
+        addi sp, sp, 20     ; Pop registers
 
-end_draw_array:
-    ldw a1, 40(sp)      ; Restore a1
-    ldw a0, 36(sp)      ; Restore a0
-    ldw t7, 32(sp)      ; Restore t7
-    ldw t6, 28(sp)      ; Restore t6
-    ldw t5, 24(sp)      ; Restore t5
-    ldw t4, 20(sp)      ; Restore t4
-    ldw t3, 16(sp)      ; Restore t3
-    ldw t2, 12(sp)      ; Restore t2
-    ldw t1, 8(sp)       ; Restore t1
-    ldw t0, 4(sp)       ; Restore t0
-    ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 44     ; Pop registers from stack
-
-    ret                 ; Return from the procedure
+        ret    
 ; END:draw_array
 
 
