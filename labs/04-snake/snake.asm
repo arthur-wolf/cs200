@@ -360,9 +360,107 @@ create_food:
 
 
 ; BEGIN: hit_test
+; Checks for collisions with the screen boundary, food, or the snake's own body.
 hit_test:
+    addi v0, zero, 0        ; v0 = 0 (default return value)
 
+    addi sp, sp, -32        ; Push registers onto stack
+    stw ra, 0(sp)           ; Save ra
+    stw t0, 4(sp)           ; Save t0
+    stw t1, 8(sp)           ; Save t1
+    stw t2, 12(sp)          ; Save t2
+    stw t3, 16(sp)          ; Save t3
+    stw t4, 20(sp)          ; Save t4
+    stw t5, 24(sp)          ; Save t5
+    stw t6, 28(sp)          ; Save t6
+
+    ; Load the current direction and head position
+    ldw t0, HEAD_X(zero)  ; Load head's x-coordinate
+    ldw t1, HEAD_Y(zero)  ; Load head's y-coordinate
+    ldw t2, GSA(t0)       ; Load current direction from GSA
+
+    ; Calculate the next position of the head based on the direction
+    addi t3, zero, DIR_LEFT
+    beq t2, t3, test_left
+    addi t3, zero, DIR_UP
+    beq t2, t3, test_up
+    addi t3, zero, DIR_DOWN
+    beq t2, t3, test_down
+    addi t3, zero, DIR_RIGHT
+    beq t2, t3, test_right
+
+    test_left:
+        addi t0, t0, -1  ; Move left
+        br check_collision
+
+    test_up:
+        addi t1, t1, -1  ; Move up
+        br check_collision
+
+    test_down:
+        addi t1, t1, 1   ; Move down
+        br check_collision
+
+    test_right:
+        addi t0, t0, 1   ; Move right
+        br check_collision
+
+    check_collision:
+        ; Check for screen boundary collision
+        blt t0, zero, end_game      ; x-coordinate out of bounds
+        blt t1, zero, end_game      ; y-coordinate out of bounds
+        addi t5, zero, 12           ; t5 = 12
+        bge t0, t5, end_game        ; NB_COLS = 12
+        addi t6, zero, 8            ; t6 = 8
+        bge t1, t6, end_game        ; NB_ROWS = 8
+
+    ; Calculate index in GSA for the next head position
+    ; index = y * 12 + x
+    addi t3, zero, 0         ; t3 = 0 (accumulator for y * 12)
+    addi t4, zero, 0         ; t4 = 0 (counter for addition iterations)
+
+    add_loop:
+        beq t4, t5, add_done     ; If counter equals 12, addition is done
+        add t3, t3, t1           ; t3 = t3 + y
+        addi t4, t4, 1           ; Increment counter
+        br add_loop
+
+    add_done:
+        add t3, t3, t0           ; t3 = t3 + x (index in GSA)
+
+    ; Check for collision with food or body
+    ldw t4, GSA(t3)      ; Load content at next position
+    addi t5, zero, FOOD  ; t5 = FOOD
+    beq t4, t5, eat_food  ; FOOD = 5
+    bne t4, zero, end_game  ; Non-zero and not food implies body collision
+
+    ; No collision
+    addi v0, zero, 0
+    br exit_hit_test
+
+    eat_food:
+        addi v0, zero, 1  ; Collision with food
+        br exit_hit_test
+
+    end_game:
+        addi v0, zero, 2  ; Collision with boundary or body
+        br exit_hit_test
+
+exit_hit_test:
+    ldw t6, 28(sp)      ; Restore t6
+    ldw t5, 24(sp)      ; Restore t5
+    ldw t4, 20(sp)      ; Restore t4
+    ldw t3, 16(sp)      ; Restore t3
+    ldw t2, 12(sp)      ; Restore t2
+    ldw t1, 8(sp)       ; Restore t1
+    ldw t0, 4(sp)       ; Restore t0
+    ldw ra, 0(sp)       ; Restore ra
+    addi sp, sp, 32     ; Pop registers
+
+    ret
 ; END: hit_test
+
+
 
 ; BEGIN: get_input
 ; Arguments:
