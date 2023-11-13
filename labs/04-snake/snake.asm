@@ -46,11 +46,7 @@
 ; initialize stack pointer
 addi    sp, zero, LEDS
 
-; main
-; arguments
-;     none
-; return values
-;     This procedure should never return.
+
 ; BEGIN:main
 main:
     stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
@@ -108,24 +104,16 @@ main:
 ; END:main
 
 
-; Arguments:
-;     none
-; Return values:
-;     none
 ; BEGIN:clear_leds
 clear_leds:
     stw zero, LEDS(zero)        ; Store 0 to LEDS(0)
     stw zero, LEDS+4(zero)      ; Store 0 to LEDS(1)          
     stw zero, LEDS+8(zero)      ; Store 0 to LEDS(2)
     ret                         ; Return
-; END: clear_leds
+; END:clear_leds
 
-; BEGIN: set_pixel
-; Arguments:
-;     a0: x-coordinate
-;     a1: y-coordinate
-; Return values:
-;     none
+
+; BEGIN:set_pixel
 set_pixel:
     addi sp, sp, -16            ; Make room on the stack for 4 registers
     stw ra, 0(sp)               ; Save ra
@@ -165,7 +153,7 @@ set_pixel:
     ldw ra, 0(sp)               ; Restore ra
     addi sp, sp, 16             ; Free up the stack space
     ret                         ; Return
-; END: set_pixel
+; END:set_pixel
 
 
 ; BEGIN:wait
@@ -186,7 +174,7 @@ wait:
     ret                         ; Return
 ; END:wait
 
-; BEGIN: display_score
+; BEGIN:display_score
 display_score:
     addi sp, sp, -32
     stw ra, 0(sp)       ; Save ra
@@ -258,10 +246,10 @@ display_score:
         addi sp, sp, 32     ; Pop registers
 
         ret
-; END: display_score
+; END:display_score
 
 
-; BEGIN: init_game
+; BEGIN:init_game
 init_game:
     addi sp, sp, -12
     stw ra, 0(sp)       ; Save ra
@@ -311,11 +299,10 @@ init_game:
         addi sp, sp, 12     ; Pop registers
 
         ret  ; Return from init_game
-; END: init_game
+; END:init_game
 
 
-; BEGIN: create_food
-; Generates and places food in a random location on the game field
+; BEGIN:create_food
 create_food:
     addi sp, sp, -16
     stw ra, 0(sp)       ; Save ra
@@ -356,11 +343,10 @@ create_food:
     addi sp, sp, 16     ; Pop registers
 
     ret  ; Return from create_food
-; END: create_food
+; END:create_food
 
 
-; BEGIN: hit_test
-; Checks for collisions with the screen boundary, food, or the snake's own body.
+; BEGIN:hit_test
 hit_test:
     addi v0, zero, 0        ; v0 = 0 (default return value)
 
@@ -458,15 +444,10 @@ exit_hit_test:
     addi sp, sp, 32     ; Pop registers
 
     ret
-; END: hit_test
+; END:hit_test
 
 
-
-; BEGIN: get_input
-; Arguments:
-;     none
-; Return values:
-;     none, but updates the game state array with the new direction if needed
+; BEGIN:get_input
 get_input:
     addi v0, zero, 0            ; v0 = 0 (default return value)
     
@@ -561,15 +542,10 @@ get_input:
 
     get_input_done:
         ret
-; END: get_input
+; END:get_input
 
 
 ; BEGIN:draw_array
-; Arguments:
-;     none
-; Return values:
-;     none, but updates the LEDs to reflect the current game state
-; BEGIN: draw_array
 draw_array:
     addi sp, sp, -44    ; Push registers onto stack
     stw ra, 0(sp)       ; Save ra
@@ -712,19 +688,19 @@ move_snake:
 ; END:move_snake
 
 
-; BEGIN: save_checkpoint
+; BEGIN:save_checkpoint
 save_checkpoint:
 
-; END: save_checkpoint
+; END:save_checkpoint
 
 
-; BEGIN: restore_checkpoint
+; BEGIN:restore_checkpoint
 restore_checkpoint:
 
-; END: restore_checkpoint
+; END:restore_checkpoint
 
 
-; BEGIN: blink_score
+; BEGIN:blink_score
 blink_score:
     addi sp, sp, -16            ; Push ra, t0, t1
     stw ra, 0(sp)               ; Save ra
@@ -766,4 +742,4 @@ blink_score:
         addi sp, sp, 16     ; Pop ra, t0, t1
 
         ret                 ; Return from the procedure
-; END: blink_score
+; END:blink_score
