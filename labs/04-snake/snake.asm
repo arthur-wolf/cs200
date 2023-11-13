@@ -49,37 +49,10 @@ addi    sp, zero, LEDS
 
 ; BEGIN:main
 main:
-    
-    ; Initialize the snake's position at the upper left corner (0, 0)
-    addi t0, zero, 0  ; Set head x-coordinate to 0
-    addi t1, zero, 0  ; Set head y-coordinate to 0
-    stw t0, HEAD_X(zero)
-    stw t1, HEAD_Y(zero)
-    stw t0, TAIL_X(zero)
-    stw t1, TAIL_Y(zero)
-
-    ; Set snake's initial direction to rightwards
-    addi t0, zero, DIR_RIGHT
-    slli t0, t0, 2     ; t0 = t0 * 4 (shift left by 2 bits to get the correct word offset)
-    stw t0, GSA(zero)  ; Store direction in the first cell of GSA since it's the head's position
-
-    ; Initialize score to 0
-    addi t0, zero, 0
-    stw t0, SCORE(zero)
-
-    main_loop:
-        call clear_leds
-        call move_snake
-        call draw_array
-        br main_loop
-
-
-
-
     stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
 
     m_init_game:
-        call init_game              ; Initialize the game
+        call init_game          ; Initialize the game
     
     m_get_input:
         call get_input
@@ -142,45 +115,32 @@ clear_leds:
 
 ; BEGIN:set_pixel
 set_pixel:
-    addi sp, sp, -16            ; Make room on the stack for 4 registers
-    stw ra, 0(sp)               ; Save ra
-    stw s0, 4(sp)               ; Save s0
-    stw s1, 8(sp)               ; Save s1
-    stw s2, 12(sp)              ; Save s2
+addi sp, sp, -20
+stw s0, 0(sp)
+stw s1, 4(sp)
+stw s2, 8(sp)
+stw s3, 12(sp)
+stw s4, 16(sp)
 
-    ; Calculate linear index (y * NB_COLS + x) without using 'mul'
-    slli s0, a1, 2              ; s0 = y << 2 (equivalent to y * 4)
-    add s0, s0, s0              ; s0 = s0 * 2 (equivalent to y * 8)
-    add s0, s0, a0              ; s0 = y * NB_COLS + x
+andi s1, a0, 12; s1 = le nombre du LED (0, 4 ou 8)
+slli s0, a0, 3 ; s0 = 8*x
+andi s2, s0, 31; mask les 5 derniers bits => (8*x) % 32
+add s2, s2, a1 ; bit = ((8*x)%32) + y 
+addi s3, zero, 1
+sll s3, s3, s2; s3 = s3 << s2
+ldw s4, LEDS(s1); load the led
+or s3, s4, s3; s3 = s3 || s4
+stw s3, LEDS(s1)
 
-    ; Calculate the address offset for the LED array
-    srai s1, s0, 5              ; s1 = s0 / 32 (find the LED array index)
-    slli s1, s1, 2              ; s1 = s1 * 4 (find the memory offset)
-
-    ; Calculate the bit position within the selected LED register
-    andi s2, s0, 0x1F           ; s2 = s0 & 31 (bit position in the register)
-    addi s0, zero, 1            ; s0 = 1 (starting bit)
-
-    loop_shift:
-        beq s2, zero, end_shift ; If s2 is 0, end the loop
-        slli s0, s0, 1          ; s0 = s0 << 1
-        addi s2, s2, -1         ; s2 = s2 - 1
-        br loop_shift
-    end_shift:
-
-    ; Set the bit in the appropriate LED register
-    ldw s2, LEDS(s1)            ; Load the current value of the LED register
-    or s0, s0, s2               ; Set the appropriate bit
-    stw s0, LEDS(s1)            ; Update the LED register
-
-    ; Restore registers and return
-    ldw s2, 12(sp)              ; Restore s2
-    ldw s1, 8(sp)               ; Restore s1
-    ldw s0, 4(sp)               ; Restore s0
-    ldw ra, 0(sp)               ; Restore ra
-    addi sp, sp, 16             ; Free up the stack space
-    ret                         ; Return
+ldw s4, 16(sp)
+ldw s3, 12(sp)
+ldw s2, 8(sp)
+ldw s1, 4(sp)
+ldw s0, 0(sp)
+addi sp, sp, 20
+ret
 ; END:set_pixel
+
 
 
 ; BEGIN:wait
@@ -331,12 +291,13 @@ init_game:
 
 ; BEGIN:create_food
 create_food:
-    addi sp, sp, -16
+    addi sp, sp, -20
     stw ra, 0(sp)       ; Save ra
     stw t0, 4(sp)       ; Save t0
     stw t1, 8(sp)       ; Save t1
     stw t2, 12(sp)      ; Save t2
     stw t3, 16(sp)      ; Save t3
+    stw t4, 20(sp)      ; Save t4
 
     ldw t3, NB_CELLS(zero)  ; t3 = NB_CELLS
     
@@ -351,23 +312,24 @@ create_food:
         ; Check if the index is within the bounds of the game state array
         bge t1, t3, get_random_index    ; If t1 >= NB_CELLS, get a new random number
         slli t2, t1, 2                  ; t2 = t1 * 4 (shift left by 2 bits to get the correct word offset)
-        ldw t2, GSA(t1)                 ; Load the value at the calculated index
-        beq t2, zero, valid_index       ; If the cell is empty, go to valid_index
+        ldw t4, GSA(t2)                 ; Load the value at the calculated index
+        beq t4, zero, valid_index       ; If the cell is empty, go to valid_index
         br get_random_index             ; Otherwise, get a new random number
 
     valid_index:
         ; Store the food location in the game state array (GSA)
-        addi t2, zero, FOOD  ; t2 = FOOD
-        stw t2, GSA(t1)      ; Place food in GSA at the calculated index
+        addi t4, zero, FOOD  ; t2 = FOOD
+        stw t4, GSA(t2)      ; Place food in GSA at the calculated index
         br end_create_food
 
     end_create_food:
+    ldw t4, 20(sp)      ; Restore t4
     ldw t3, 16(sp)      ; Restore t3
     ldw t2, 12(sp)      ; Restore t2
     ldw t1, 8(sp)       ; Restore t1
     ldw t0, 4(sp)       ; Restore t0
     ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 16     ; Pop registers
+    addi sp, sp, 20     ; Pop registers
 
     ret  ; Return from create_food
 ; END:create_food
@@ -574,12 +536,14 @@ get_input:
 
 ; BEGIN:draw_array
 draw_array:
-    addi sp, sp, -20            ; Push ra, t0, t1, t2, t3
+    addi sp, sp, -28            ; Push ra, t0, t1, t2, t3
     stw ra, 0(sp)               ; Save ra
     stw t0, 4(sp)               ; Save t0
     stw t1, 8(sp)               ; Save t1
     stw t2, 12(sp)              ; Save t2
     stw t3, 16(sp)              ; Save t3
+    stw a0, 20(sp)              ; Save a0
+    stw a1, 24(sp)              ; Save a1
 
 
     addi t0, zero, 0            ; t0 = 0 (counter for cells) -> t0 is the cell number
@@ -603,12 +567,14 @@ draw_array:
         br loop_array               ; Loop back to loop_array
 
     end_draw_array:
+        ldw a1, 24(sp)      ; Restore a1
+        ldw a0, 20(sp)      ; Restore a0
         ldw t3, 16(sp)      ; Restore t3
         ldw t2, 12(sp)      ; Restore t2
         ldw t1, 8(sp)       ; Restore t1
         ldw t0, 4(sp)       ; Restore t0
         ldw ra, 0(sp)       ; Restore ra
-        addi sp, sp, 20     ; Pop registers
+        addi sp, sp, 28     ; Pop registers
 
         ret    
 ; END:draw_array
@@ -616,60 +582,107 @@ draw_array:
 
 ; BEGIN:move_snake
 move_snake:
-    ; Load head and tail coordinates
-    ldw t0, HEAD_X(zero)  ; t0 = head's x-coordinate
-    ldw t1, HEAD_Y(zero)  ; t1 = head's y-coordinate
-    ldw t2, TAIL_X(zero)  ; t2 = tail's x-coordinate
-    ldw t3, TAIL_Y(zero)  ; t3 = tail's y-coordinate
+    head:
+        ldw t0, HEAD_X(zero)  ; Load head's x-coordinate
+        ldw t1, HEAD_Y(zero)  ; Load head's y-coordinate
 
-    ; Load direction and ARG_FED into registers
-    addi t5, zero, DIR_RIGHT
-    addi t6, zero, DIR_LEFT
-    addi t7, zero, DIR_UP
-    ; Note: We'll load DIR_DOWN and ARG_FED on-the-fly when required
+        slli t2, t0, 3
+        add t2, t2, t1        ; t2 = y * 12 + x (index in GSA) -> t2 is the index of the head in the GSA
+        slli t2, t2, 2        ; t2 = t2 * 4 (shift left by 2 bits to get the correct word offset)
 
-    ; Determine the direction of the snake from the head's position in the GSA
-    ldw t4, GSA(t0)       ; t4 = direction of the snake's head
+        ldw t3, GSA(t2)       ; Load current head direction from GSA
 
-    ; Save current head position as it will become the new tail if the snake ate food
-    add t2, t0, zero      ; t2 = previous head's x-coordinate (reusing t2 temporarily)
-    add t3, t1, zero      ; t3 = previous head's y-coordinate (reusing t3 temporarily)
+        addi t4, zero, DIR_LEFT
+        beq t3, t4, move_head_left
 
-    ; Update head's position based on direction
-    beq t4, t5, move_right
-    beq t4, t6, move_left
-    beq t4, t7, move_up
-    addi t4, zero, DIR_DOWN  ; Load DIR_DOWN value
-    beq t4, t4, move_down   ; Always take this branch as it's the last option
+        addi t4, zero, DIR_UP
+        beq t3, t4, move_head_up
 
-    move_right:
-        addi t0, t0, 1        ; Move right
-        beq zero, zero, update_snake_position
-    move_left:
-        addi t0, t0, -1       ; Move left
-        beq zero, zero, update_snake_position
-    move_up:
-        addi t1, t1, -1       ; Move up
-        beq zero, zero, update_snake_position
-    move_down:
-        addi t1, t1, 1        ; Move down
+        addi t4, zero, DIR_DOWN
+        beq t3, t4, move_head_down
 
-    update_snake_position:
-        ; Update the head's position in memory
-        stw t0, HEAD_X(zero)
-        stw t1, HEAD_Y(zero)
+        addi t4, zero, DIR_RIGHT
+        beq t3, t4, move_head_right
 
-        ; Check if the snake ate food
-        addi t4, zero, ARG_FED  ; Load ARG_FED value
-        beq a0, t4, snake_ate_food
-        ; If the snake did not eat food, clear the tail's previous position
-        stw zero, GSA(t2)       ; Clear the GSA cell at tail's position
-        ; Update tail's position to previous head's position
-        stw t2, TAIL_X(zero)
-        stw t3, TAIL_Y(zero)
+    move_head_left:
+        addi t0, t0, -1         ; Move x-coordinate left by 1
+        stw t0, HEAD_X(zero)    ; Store the new head x-coordinate
+        addi t2, t2, -32        ; Move GSA index left by 1
+        stw t3, GSA(t2)         ; Update direction in GSA
+        br tail
+    
+    move_head_up:
+        addi t0, t0, -1         ; Move y-coordinate up by 1
+        stw t0, HEAD_Y(zero)    ; Store the new head y-coordinate
+        addi t2, t2, -4         ; Move GSA index up by 1
+        stw t3, GSA(t2)         ; Update direction in GSA
+        br tail
 
-    snake_ate_food:
-    ret
+    move_head_down:
+        addi t0, t0, 1         ; Add one to y-coordinate
+        stw t0, HEAD_Y(zero)   ; Store the new head y-coordinate
+        addi t2, t2, 4         ; Move GSA index down by 1
+        stw t3, GSA(t2)        ; Update direction in GSA
+        br tail
+    
+    move_head_right:
+        addi t0, t0, 1          ; Move x-coordinate right by 1
+        stw t0, HEAD_X(zero)    ; Store the new head x-coordinate
+        addi t2, t2, 32         ; Move GSA index right by 1
+        stw t3, GSA(t2)         ; Update direction in GSA
+        br tail
+
+    tail:
+        bne a0, zero, end_move_snake    ; If there is food, i.e. a0 = 1, the tail doesn't move
+                                        ; Else, we need to move the tail:
+
+        ldw t0, TAIL_X(zero)  ; Load tail's x-coordinate
+        ldw t1, TAIL_Y(zero)  ; Load tail's y-coordinate
+
+        slli t2, t0, 3
+        add t2, t2, t1        ; t2 = y * 12 + x (index in GSA) -> t2 is the index of the head in the GSA
+        slli t2, t2, 2        ; t2 = t2 * 4 (shift left by 2 bits to get the correct word offset)
+
+        ldw t3, GSA(t2)       ; Load current tail direction from GSA
+
+        addi t4, zero, DIR_LEFT         ; DIR_LEFT = 1
+        beq t3, t4, move_tail_left
+
+        addi t4, zero, DIR_UP           ; DIR_UP = 2
+        beq t3, t4, move_tail_up
+
+        addi t4, zero, DIR_DOWN         ; DIR_DOWN = 3
+        beq t3, t4, move_tail_down
+
+        addi t4, zero, DIR_RIGHT        ; DIR_RIGHT = 4
+        beq t3, t4, move_tail_right
+
+    move_tail_left:
+        stw zero, GSA(t2)       ; Clear the cell in GSA
+        addi t0, t0, -1         ; Move x-coordinate left by 1
+        stw t0, TAIL_X(zero)    ; Store
+        br end_move_snake
+
+    move_tail_up:
+        stw zero, GSA(t2)       ; Clear the cell in GSA
+        addi t0, t0, -1         ; Move y-coordinate up by 1
+        stw t0, TAIL_Y(zero)    ; Store
+        br end_move_snake
+
+    move_tail_down:
+        stw zero, GSA(t2)       ; Clear the cell in GSA
+        addi t0, t0, 1          ; Move y-coordinate down by 1
+        stw t0, TAIL_Y(zero)    ; Store
+        br end_move_snake
+    
+    move_tail_right:
+        stw zero, GSA(t2)       ; Clear the cell in GSA
+        addi t0, t0, 1         ; Move x-coordinate right by 1
+        stw t0, TAIL_X(zero)    ; Store
+        br end_move_snake    
+
+    end_move_snake:
+        ret
 ; END:move_snake
 
 
