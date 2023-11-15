@@ -53,6 +53,7 @@ main:
 
     m_init_game:
         call init_game          ; Initialize the game
+		;call wait
     
     m_get_input:
         call get_input
@@ -65,6 +66,7 @@ main:
         addi t0, zero, RET_ATE_FOOD     ; t0 = 1
         beq v0, t0, m_food_eaten          ; If v0 is 1, go to food_eaten
         addi t0, zero, RET_COLLISION    ; t0 = 2
+		;call wait
         beq v0, t0, m_init_game         ; If v0 is 2, go to init_game
         br m_move_snake_no_food         ; Otherwise, continue to move_snake_no_food
 
@@ -75,6 +77,7 @@ main:
             stw t0, SCORE(zero)     ; Store the new score
         
         call display_score          ; Display the new score
+		addi a0, zero, 1
         call move_snake             ; Move the snake
         call create_food            ; Create a new piece of food
         br m_save_checkpoint       ; Save checkpoint
@@ -85,6 +88,7 @@ main:
         br m_blink_score               ; If one was saved, blink the score
 
     m_move_snake_no_food:
+		addi a0, zero, 0
         call move_snake
         br m_clear_and_draw
 
@@ -145,12 +149,13 @@ ret
 
 ; BEGIN:wait
 wait:              
-    addi t0, zero, 0x17D7840          ; t0 = 25,000,000
+    addi t0, zero, 1
+	slli t0, t0, 21
 
     wait_loop:
         addi t0, t0, -1             ; t1--
         bne t0, zero, wait_loop 
-    ; waits 0.5 seconds
+    ; waits approx. 0.5 seconds
     ret
 ; END:wait
 
@@ -245,7 +250,8 @@ init_game:
         addi t1, zero, NB_CELLS
         clean_up_loop:
             beq t0, t1, end_clean_up
-            stw zero, GSA(t0)
+			slli t2, t0, 2
+            stw zero, GSA(t2)
             addi t0, t0, 1
             br clean_up_loop
         end_clean_up:
@@ -273,8 +279,8 @@ init_game:
     call draw_array
 
     end_init_game:
-        stw t1, 8(sp)       ; Restore t1
-        stw t0, 4(sp)       ; Restore t0
+        ldw t1, 8(sp)       ; Restore t1
+        ldw t0, 4(sp)       ; Restore t0
         ldw ra, 0(sp)       ; Restore ra
         addi sp, sp, 12     ; Pop registers
 
@@ -284,7 +290,7 @@ init_game:
 
 ; BEGIN:create_food
 create_food:
-    addi sp, sp, -20
+    addi sp, sp, -24
     stw ra, 0(sp)       ; Save ra
     stw t0, 4(sp)       ; Save t0
     stw t1, 8(sp)       ; Save t1
@@ -292,7 +298,7 @@ create_food:
     stw t3, 16(sp)      ; Save t3
     stw t4, 20(sp)      ; Save t4
 
-    ldw t3, NB_CELLS(zero)  ; t3 = NB_CELLS
+	addi t3, zero, NB_CELLS
     
     get_random_index:
         ; Load a random number
@@ -322,7 +328,7 @@ create_food:
     ldw t1, 8(sp)       ; Restore t1
     ldw t0, 4(sp)       ; Restore t0
     ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 20     ; Pop registers
+    addi sp, sp, 24     ; Pop registers
 
     ret  ; Return from create_food
 ; END:create_food
@@ -345,7 +351,11 @@ hit_test:
     ; Load the current direction and head position
     ldw t0, HEAD_X(zero)  ; Load head's x-coordinate
     ldw t1, HEAD_Y(zero)  ; Load head's y-coordinate
-    ldw t2, GSA(t0)       ; Load current direction from GSA
+	
+	slli t3, t0, 3
+    add t3, t3, t1           ; t3 = t3 + x (index in GSA)
+	slli t3, t3, 2
+    ldw t2, GSA(t3)       ; Load current direction from GSA
 
     ; Calculate the next position of the head based on the direction
     addi t3, zero, DIR_LEFT
@@ -382,19 +392,11 @@ hit_test:
         addi t6, zero, 8            ; t6 = 8
         bge t1, t6, end_game        ; NB_ROWS = 8
 
-    ; Calculate index in GSA for the next head position
-    ; index = y * 12 + x
-    addi t3, zero, 0         ; t3 = 0 (accumulator for y * 12)
-    addi t4, zero, 0         ; t4 = 0 (counter for addition iterations)
-
-    add_loop:
-        beq t4, t5, add_done     ; If counter equals 12, addition is done
-        add t3, t3, t1           ; t3 = t3 + y
-        addi t4, t4, 1           ; Increment counter
-        br add_loop
-
-    add_done:
-        add t3, t3, t0           ; t3 = t3 + x (index in GSA)
+    compute_next_cell:
+		addi t3, zero, 0
+		slli t3, t0, 3
+        add t3, t3, t1           ; t3 = t3 + x (index in GSA)
+		slli t3, t3, 2
 
     ; Check for collision with food or body
     ldw t4, GSA(t3)      ; Load content at next position
@@ -443,7 +445,12 @@ get_input:
     ; The direction is stored in the first cell of the GSA
 
     ; Load current direction
-    ldw t1, GSA(zero)           ; t1 = current direction
+	ldw t2, HEAD_X(zero)
+	ldw t1, HEAD_Y(zero)
+	slli t3, t2, 3
+    add t3, t3, t1           ; t3 = t3 + x (index in GSA)
+	slli t7, t3, 2
+    ldw t1, GSA(t7)           ; t1 = current direction
 
     check_checkpoint:
         ; Check for checkpoint button press, i.e. is the 4th bit set?
@@ -454,8 +461,8 @@ get_input:
         br is_checkpoint            ; if t2 is not 0, go to is_checkpoint 
 
     is_checkpoint:
-        stw t2, GSA(zero)               ; update direction to checkpoint
-        addi v0, zero, 5                ; set v0 to 5 to indicate checkpoint
+		addi v0, zero, 5                ; set v0 to 5 to indicate checkpoint
+        stw v0, GSA(t7)               ; update direction to checkpoint
         br get_input_done               ; skip other checks and end procedure
 
     check_left:
@@ -469,8 +476,8 @@ get_input:
     is_left:
         addi t3, zero, DIR_RIGHT    ; t3 = right direction
         beq t1, t3, check_up        ; if current direction is right, ignore left button
-        stw t2, GSA(zero)           ; update direction to left
         addi v0, zero, 1            ; set v0 to 1 to indicate left
+		stw v0, GSA(t7)           ; update direction to left
         br get_input_done           ; skip other checks and end procedure
 
     check_up:
@@ -484,8 +491,8 @@ get_input:
     is_up:
         addi t3, zero, DIR_DOWN     ; t3 = down direction
         beq t1, t3, check_down      ; if current direction is down, ignore up button
-        stw t2, GSA(zero)           ; update direction to up
-        addi v0, zero, 2            ; set v0 to 2 to indicate up
+		addi v0, zero, 2            ; set v0 to 2 to indicate up
+        stw v0, GSA(t7)           ; update direction to up
         br get_input_done           ; skip other checks and end procedure
 
     check_down:
@@ -499,8 +506,8 @@ get_input:
     is_down:
         addi t3, zero, DIR_UP       ; t3 = up direction
         beq t1, t3, check_right     ; if current direction is up, ignore down button
-        stw t2, GSA(zero)           ; update direction to down
-        addi v0, zero, 3            ; set v0 to 3 to indicate down
+		addi v0, zero, 3            ; set v0 to 3 to indicate down
+        stw v0, GSA(t7)           ; update direction to down
         br get_input_done           ; skip other checks and end procedure
 
     check_right:
@@ -515,7 +522,7 @@ get_input:
         addi t3, zero, DIR_LEFT     ; t3 = left direction
         beq t1, t3, get_input_done  ; if current direction is left, ignore right button
         addi v0, zero, 4            ; set v0 to 4 to indicate right
-        stw t2, GSA(zero)           ; update direction to right
+        stw v0, GSA(t7)           ; update direction to right
         br get_input_done           ; skip other checks and end procedure
 
     none_pressed:
@@ -605,15 +612,15 @@ move_snake:
         br tail
     
     move_head_up:
-        addi t0, t0, -1         ; Move y-coordinate up by 1
-        stw t0, HEAD_Y(zero)    ; Store the new head y-coordinate
+        addi t1, t1, -1         ; Move y-coordinate up by 1
+        stw t1, HEAD_Y(zero)    ; Store the new head y-coordinate
         addi t2, t2, -4         ; Move GSA index up by 1
         stw t3, GSA(t2)         ; Update direction in GSA
         br tail
 
     move_head_down:
-        addi t0, t0, 1         ; Add one to y-coordinate
-        stw t0, HEAD_Y(zero)   ; Store the new head y-coordinate
+        addi t1, t1, 1         ; Add one to y-coordinate
+        stw t1, HEAD_Y(zero)   ; Store the new head y-coordinate
         addi t2, t2, 4         ; Move GSA index down by 1
         stw t3, GSA(t2)        ; Update direction in GSA
         br tail
@@ -658,14 +665,14 @@ move_snake:
 
     move_tail_up:
         stw zero, GSA(t2)       ; Clear the cell in GSA
-        addi t0, t0, -1         ; Move y-coordinate up by 1
-        stw t0, TAIL_Y(zero)    ; Store
+        addi t1, t1, -1         ; Move y-coordinate up by 1
+        stw t1, TAIL_Y(zero)    ; Store
         br end_move_snake
 
     move_tail_down:
         stw zero, GSA(t2)       ; Clear the cell in GSA
-        addi t0, t0, 1          ; Move y-coordinate down by 1
-        stw t0, TAIL_Y(zero)    ; Store
+        addi t1, t1, 1          ; Move y-coordinate down by 1
+        stw t1, TAIL_Y(zero)    ; Store
         br end_move_snake
     
     move_tail_right:
