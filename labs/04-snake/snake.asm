@@ -144,21 +144,14 @@ ret
 
 
 ; BEGIN:wait
-wait:
-    addi sp, sp, -4             ; push s0
-    stw s0, 0(sp)               ; save s0
+wait:              
+    addi t0, zero, 0x17D7840          ; t0 = 25,000,000
 
-    addi s0, zero, 1            ; s0 = 1
-    slli s0, s0, 20             ; s0 = 0x100000
-
-    wait_loop:                  ; wait_loop:
-        addi s0, s0, -1         ;   s0 = s0 - 1
-        bne s0, zero, wait_loop ;   if s0 != 0, goto wait_loop
-
-
-    ldw s0, 0(sp)               ; restore s0
-    addi sp, sp, 4              ; pop s0
-    ret                         ; Return
+    wait_loop:
+        addi t0, t0, -1             ; t1--
+        bne t0, zero, wait_loop 
+    ; waits 0.5 seconds
+    ret
 ; END:wait
 
 ; BEGIN:display_score
