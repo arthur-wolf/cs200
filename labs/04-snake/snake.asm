@@ -548,27 +548,38 @@ draw_array:
     stw a0, 20(sp)              ; Save a0
     stw a1, 24(sp)              ; Save a1
 
+    addi t0, zero, 0
+	addi t6, zero, 12
+	addi t5, zero, 8
+	br draw_array_x_loop 
 
-    addi t0, zero, 0            ; t0 = 0 (counter for cells) -> t0 is the cell number
-    addi t1, zero, 0            ; t1 = 0 (index in GSA) -> t1 is the index of the cell in GSA
-    addi t2, zero, NB_CELLS     ; t2 = NB_CELLS
+    draw_array_x_loop:
+	addi t1, zero, 0
+	blt t0, t6, draw_array_y_loop
+	ret
 
-    loop_array:
-        beq t0, t2, end_draw_array  ; If counter equals NB_CELLS, end the loop
-        ldw t3, GSA(t1)             ; Load the value at the calculated index
-        beq t3, zero, next_pixel    ; If the cell is empty, skip drawing
-        br draw_pixel               ; Otherwise, draw the pixel
+    draw_array_y_loop:
+	slli t2, t0, 3
+	add t3, t2, t1
+	slli t3, t3, 2
 
-    draw_pixel:
-        srai a0, t0, 3              ; a0 = t0 / 8 (find the LED array index) -> a0 = x coordinate
-        andi a1, t0, 0x7            ; a1 = t0 & 7 (bit position in the register) -> a1 = y coordinate
-        call set_pixel              ; Set the pixel at the calculated coordinates
-        br next_pixel               ; Continue to the next pixel
+	ldw t4, GSA(t3)
+	bne t4, zero, draw_array_set_pixel
 
-    next_pixel:
-        addi t0, t0, 1              ; Increment counter for cells
-        addi t1, t1, 4              ; Increment counter for GSA
-        br loop_array               ; Loop back to loop_array
+	draw_array_step:
+	addi t1, t1, 1
+	blt t1, t5, draw_array_y_loop
+	addi t0, t0, 1
+
+	br draw_array_x_loop 
+
+    addi a0, t0, 0
+	addi a1, t1, 0
+	call set_pixel
+	addi t0,a0,0
+	addi t1,a1,0
+
+    br draw_array_step
 
     end_draw_array:
         ldw a1, 24(sp)      ; Restore a1
