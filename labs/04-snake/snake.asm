@@ -241,18 +241,16 @@ init_game:
     stw t0, 4(sp)       ; Save t0
     stw t1, 8(sp)       ; Save t1
 
-    ; Clear the display
-    call clear_leds
-
     clean_up:
         ; Clear the game state array
         addi t0, zero, 0
-        addi t1, zero, NB_CELLS
+        addi t1, zero, 4
+        addi t2, zero, NB_CELLS
         clean_up_loop:
-            beq t0, t1, end_clean_up
-			slli t2, t0, 2
-            stw zero, GSA(t2)
+            beq t0, t2, end_clean_up
+            stw zero, GSA(t1)
             addi t0, t0, 1
+            addi t1, t1, 4
             br clean_up_loop
         end_clean_up:
 
@@ -268,13 +266,18 @@ init_game:
     addi t0, zero, DIR_RIGHT
     stw t0, GSA(zero)  ; Store direction in the first cell of GSA since it's the head's position
 
+    ; Make a piece of food appear on the display
+    call create_food
+
     ; Initialize score to 0
     addi t0, zero, 0
     stw t0, SCORE(zero)
 
-    ; Make a piece of food appear on the display
-    call create_food
+    call display_score
 
+    ; Clear the display
+    call clear_leds
+    
     ; Draw the initial game state
     call draw_array
 
