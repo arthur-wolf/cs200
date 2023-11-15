@@ -49,62 +49,68 @@ addi    sp, zero, LEDS
 
 ; BEGIN:main
 main:
-    stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
 
-    m_init_game:
-        call init_game          ; Initialize the game
-		call wait
+	stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
     
-    m_get_input:
-        call get_input
-        addi t0, zero, 5                    ; t0 = 5 (checkpoint button return value)
-        beq v0, t0, m_restore_checkpoint    ; If v0 is 5, restore checkpoint
-        br m_hit_test                       ; Otherwise, continue to hit_test
+	game_init:
+    call init_game           ; Initialize game state
 
-    m_hit_test:
-        call hit_test   ; ate food -> v0 = 1, collision -> v0 = 2, otherwise -> v0 = 0
-        addi t0, zero, RET_ATE_FOOD     ; t0 = 1
-        beq v0, t0, m_food_eaten          ; If v0 is 1, go to food_eaten
-        addi t0, zero, RET_COLLISION    ; t0 = 2
-		call wait
-        beq v0, t0, m_init_game         ; If v0 is 2, go to init_game
-        br m_move_snake_no_food         ; Otherwise, continue to move_snake_no_food
+	game_loop:
 
-    m_food_eaten:
-        update_score:
-            ldw t0, SCORE(zero)     ; Load the current score
-            addi t0, t0, 1          ; Increment the score
-            stw t0, SCORE(zero)     ; Store the new score
-        
-        call display_score          ; Display the new score
-		addi a0, zero, 1
-        call move_snake             ; Move the snake
-        call create_food            ; Create a new piece of food
-        br m_save_checkpoint       ; Save checkpoint
+	addi t0, zero, 1    ; t0 = 1
+	slli t0, t0, 22    ; t0 = 0b1000000000000000000000
+	game_wait:
+	addi t0, t0, -1   ; t0--
+	bne t0, zero, game_wait ; wait for 0.5 seconds
+
+    call get_input    ; Get input from buttons
+
+	addi t0, zero, 5    ; t0 = 5
+	beq v0, t0, game_restore    ; if v0 = 5, restore checkpoint
+
+	game_continue:
+	call hit_test   ; Check for collisions
+    addi t0, zero, 1    ; t0 = 1
+	beq v0, t0, game_up   ; if v0 = 1, food was eaten
+	addi t0, zero, 2    ; t0 = 2
+	beq v0, t0, game_init;  if v0 = 2, game over
+
+	addi a0, zero, 0    ; a0 = 0
+	call move_snake    ; Move the snake
+
+	game_display:
+	call clear_leds   ; Clear the display
+	call draw_array  ; Draw the game state
     
-    m_save_checkpoint:
-        call save_checkpoint
-        beq v0, zero, m_clear_and_draw ; If a checkpoint was not saved, go back to clear_and_draw
-        br m_blink_score               ; If one was saved, blink the score
+	br game_loop    ; Loop back to game_loop
 
-    m_move_snake_no_food:
-		addi a0, zero, 0
-        call move_snake
-        br m_clear_and_draw
+	game_up:
+	ldw t0, SCORE(zero) ; Load the score into register t0
+	addi t0, t0, 1    ; Increment score
+	stw t0, SCORE(zero) ; Store the new score
+	call display_score  ; Display the new score
+	addi a0, zero, 1    ; a0 = 1
+	call move_snake   ; Move the snake
+	call create_food    ; Create a new piece of food
+	call save_checkpoint    ; Save checkpoint
+	addi t0, zero, 0    ; t0 = 0
+	beq v0, t0, game_display    ; if v0 = 0, display the game
+	addi t0, zero, 1    ; t0 = 1
+	beq v0, t0, game_blink  ; if v0 = 1, blink the score
 
-    m_clear_and_draw:
-        call clear_leds
-        call draw_array
-        br m_get_input
-    
-    m_restore_checkpoint:
-        call restore_checkpoint
-        beq v0, zero, m_get_input   ; If checkpoint is invalid, go back to get_input
-        br m_blink_score            ; else blink the score if the checkpoint is valid
+	game_blink:
+	call blink_score    ; Blink the score
+	br game_display   ; Loop back to game_display
+	
 
-    m_blink_score:
-        call blink_score            ; blink the score
-        br m_clear_and_draw         ; go back to clear_and_draw    
+	game_restore:
+	call restore_checkpoint   ; Restore checkpoint
+	addi t0, zero, 0    ; t0 = 0
+	beq v0, t0, game_loop   ; if v0 = 0, loop back to game_loop
+	call clear_leds  ; Clear the display
+	call draw_array ; Draw the game state
+	addi t0, zero, 1    ; t0 = 1
+	beq v0, t0, game_blink      ; if v0 = 1, blink the score
 ; END:main
 
 
