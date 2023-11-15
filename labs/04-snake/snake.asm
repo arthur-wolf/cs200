@@ -277,7 +277,7 @@ init_game:
 
     ; Clear the display
     call clear_leds
-    
+
     ; Draw the initial game state
     call draw_array
 
@@ -550,12 +550,12 @@ draw_array:
 
 
     addi t0, zero, 0            ; t0 = 0 (counter for cells) -> t0 is the cell number
-    addi t1, zero, NB_CELLS     ; t1 = NB_CELLS
+    addi t1, zero, 0            ; t1 = 0 (index in GSA) -> t1 is the index of the cell in GSA
+    addi t2, zero, NB_CELLS     ; t2 = NB_CELLS
 
     loop_array:
-        beq t0, t1, end_draw_array  ; If counter equals NB_CELLS, end the loop
-        slli t2, t0, 2              ; t2 = t0 * 4 (shift left by 2 bits to get the correct word offset)
-        ldw t3, GSA(t2)             ; Load the value at the calculated index
+        beq t0, t2, end_draw_array  ; If counter equals NB_CELLS, end the loop
+        ldw t3, GSA(t1)             ; Load the value at the calculated index
         beq t3, zero, next_pixel    ; If the cell is empty, skip drawing
         br draw_pixel               ; Otherwise, draw the pixel
 
@@ -566,7 +566,8 @@ draw_array:
         br next_pixel               ; Continue to the next pixel
 
     next_pixel:
-        addi t0, t0, 1              ; Increment counter
+        addi t0, t0, 1              ; Increment counter for cells
+        addi t1, t1, 4              ; Increment counter for GSA
         br loop_array               ; Loop back to loop_array
 
     end_draw_array:
