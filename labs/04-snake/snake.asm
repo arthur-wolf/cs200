@@ -44,68 +44,71 @@
 .equ    ARG_FED,        1       ; a0 argument for move_snake when food was eaten
 
 ; initialize stack pointer
-addi    sp, zero, LEDS
+addi sp, zero, LEDS
 addi t0, zero, 0xff
 stw t0, LEDS+12(zero)
 
 
 ; BEGIN:main
 main:
-
 	stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
     
 	m_init_game:
-    call init_game           ; Initialize game state
+        call init_game           ; Initialize game state
 
-	game_loop:
+	m_game_loop:
+	    call wait 
+        call get_input    ; Get input from buttons
 
-	call wait 
+        addi t0, zero, 5                    ; t0 = 5 (checkpoint button pressed)
+        beq v0, t0, m_restore_checkpoint    ; if v0 = 5, restore checkpoint
 
-    call get_input    ; Get input from buttons
+	m_game_continue:
+        call hit_test           ; Test collisions
 
-	addi t0, zero, 5    ; t0 = 5
-	beq v0, t0, game_restore    ; if v0 = 5, restore checkpoint
+        addi t0, zero, 1                    ; t0 = 1
+        beq v0, t0, m_game_increment_score  ; if v0 = 1, (food was eaten)
 
-	game_continue:
-	call hit_test   ; Check for collisions
-    addi t0, zero, 1    ; t0 = 1
-	beq v0, t0, game_up   ; if v0 = 1, food was eaten
-	addi t0, zero, 2    ; t0 = 2
-	beq v0, t0, m_init_game;  if v0 = 2, game over
+        addi a0, zero, 0            ; a0 = 0 (food wasn't eaten)
+        beq v0, zero, move_snake    ; if v0 = 0, (food wasn't eaten)
 
-	addi a0, zero, 0    ; a0 = 0
-	call move_snake    ; Move the snake
+        ; v0 = 2 (collision detected) -> game over
+        call wait               ; Wait for increased visibility
+        call m_init_game        ; Game Over
 
-	game_display:
-	call clear_leds   ; Clear the display
-	call draw_array  ; Draw the game state
-    
-	br game_loop    ; Loop back to game_loop
+    m_clear_and_draw:
+        call clear_leds     ; Clear the display
+        call draw_array     ; Draw the game state
+        
+        br m_game_loop      ; Loop back to m_game_loop
 
-	game_up:
-	ldw t0, SCORE(zero) ; Load the score into register t0
-	addi t0, t0, 1    ; Increment score
-	stw t0, SCORE(zero) ; Store the new score
-	call display_score  ; Display the new score
-	addi a0, zero, 1    ; a0 = 1
-	call move_snake   ; Move the snake
-	call create_food    ; Create a new piece of food
-	call save_checkpoint    ; Save checkpoint
-	addi t0, zero, 0    ; t0 = 0
-	beq v0, t0, game_display    ; if v0 = 0, display the game
-	addi t0, zero, 1    ; t0 = 1
-	beq v0, t0, game_blink  ; if v0 = 1, blink the score
+	m_game_increment_score:
+        ldw t0, SCORE(zero) ; Load the score into register t0
+        addi t0, t0, 1      ; Increment score
+        stw t0, SCORE(zero) ; Store the new score
 
-	game_blink:
-	call blink_score    ; Blink the score
-	br game_display   ; Loop back to game_display
+        call display_score  ; Display the new score
+
+        addi a0, zero, 1    ; a0 = 1 (food was eaten)
+        call move_snake     ; Move the snake
+
+        call create_food        ; Create a new piece of food
+        call save_checkpoint    ; Save checkpoint
+
+        addi t0, zero, 0                ; t0 = 0
+        beq v0, t0, m_clear_and_draw    ; if v0 = 0, display the game (checkpoint was not saved)
+        addi t0, zero, 1                ; t0 = 1
+        beq v0, t0, m_game_blink        ; if v0 = 1, blink the score (checkpoint was saved)
+
+	m_game_blink:
+        call blink_score        ; Blink the score
+        br m_clear_and_draw     ; Loop back to m_clear_and_draw
 	
-
-	game_restore:
-	call restore_checkpoint   ; Restore checkpoint
-	beq v0, zero, game_loop   ; if v0 = 0, loop back to game_loop
-	addi t0, zero, 1    ; t0 = 1
-	beq v0, t0, game_blink      ; if v0 = 1, blink the score
+	m_restore_checkpoint:
+        call restore_checkpoint     ; Restore checkpoint
+        beq v0, zero, m_game_loop   ; if v0 = 0, loop back to game_loop (checkpoint was not restored)
+        addi t0, zero, 1            ; t0 = 1
+        beq v0, t0, m_game_blink    ; if v0 = 1, blink the score (checkpoint was restored)
 ; END:main
 
 
@@ -127,14 +130,15 @@ stw s2, 8(sp)
 stw s3, 12(sp)
 stw s4, 16(sp)
 
-andi s1, a0, 12; s1 = le nombre du LED (0, 4 ou 8)
-slli s0, a0, 3 ; s0 = 8*x
-andi s2, s0, 31; mask les 5 derniers bits => (8*x) % 32
-add s2, s2, a1 ; bit = ((8*x)%32) + y 
+andi s1, a0, 12     ; s1 = le nombre du LED (0, 4 ou 8)
+slli s0, a0, 3      ; s0 = 8*x
+andi s2, s0, 31     ; mask les 5 derniers bits => (8*x) % 32
+add s2, s2, a1      ; bit = ((8*x)%32) + y 
+
 addi s3, zero, 1
-sll s3, s3, s2; s3 = s3 << s2
-ldw s4, LEDS(s1); load the led
-or s3, s4, s3; s3 = s3 || s4
+sll s3, s3, s2      ; s3 = s3 << s2
+ldw s4, LEDS(s1)    ; load the led
+or s3, s4, s3       ; s3 = s3 || s4
 stw s3, LEDS(s1)
 
 ldw s4, 16(sp)
@@ -145,7 +149,6 @@ ldw s0, 0(sp)
 addi sp, sp, 20
 ret
 ; END:set_pixel
-
 
 
 ; BEGIN:wait
@@ -160,17 +163,11 @@ wait:
     ret
 ; END:wait
 
+
 ; BEGIN:display_score
 display_score:
-    addi sp, sp, -32
+    addi sp, sp, -4      ; Push ra
     stw ra, 0(sp)       ; Save ra
-    stw t0, 4(sp)       ; Save t0
-    stw t1, 8(sp)       ; Save t1
-    stw t2, 12(sp)      ; Save t2
-    stw t3, 16(sp)      ; Save t3
-    stw t4, 20(sp)      ; Save t4
-    stw t5, 24(sp)      ; Save t5
-    stw t6, 28(sp)      ; Save t6
 
     ldw t0, SCORE(zero)  ; Load the score into register t0
 
@@ -209,15 +206,8 @@ display_score:
         br end_display_score
 
     end_display_score:
-        ldw t6, 28(sp)      ; Restore t6
-        ldw t5, 24(sp)      ; Restore t5
-        ldw t4, 20(sp)      ; Restore t4
-        ldw t3, 16(sp)      ; Restore t3
-        ldw t2, 12(sp)      ; Restore t2
-        ldw t1, 8(sp)       ; Restore t1
-        ldw t0, 4(sp)       ; Restore t0
         ldw ra, 0(sp)       ; Restore ra
-        addi sp, sp, 32     ; Pop registers
+        addi sp, sp, 4     ; Pop registers
 
         ret
 ; END:display_score
@@ -225,10 +215,8 @@ display_score:
 
 ; BEGIN:init_game
 init_game:
-    addi sp, sp, -12
+    addi sp, sp, -4
     stw ra, 0(sp)       ; Save ra
-    stw t0, 4(sp)       ; Save t0
-    stw t1, 8(sp)       ; Save t1
 
     clean_up:
         ; Clear the game state array
@@ -271,10 +259,8 @@ init_game:
     call draw_array
 
     end_init_game:
-        ldw t1, 8(sp)       ; Restore t1
-        ldw t0, 4(sp)       ; Restore t0
         ldw ra, 0(sp)       ; Restore ra
-        addi sp, sp, 12     ; Pop registers
+        addi sp, sp, 4     ; Pop registers
 
         ret  ; Return from init_game
 ; END:init_game
@@ -282,13 +268,8 @@ init_game:
 
 ; BEGIN:create_food
 create_food:
-    addi sp, sp, -24
+    addi sp, sp, -4
     stw ra, 0(sp)       ; Save ra
-    stw t0, 4(sp)       ; Save t0
-    stw t1, 8(sp)       ; Save t1
-    stw t2, 12(sp)      ; Save t2
-    stw t3, 16(sp)      ; Save t3
-    stw t4, 20(sp)      ; Save t4
 
 	addi t3, zero, NB_CELLS
     
@@ -314,13 +295,8 @@ create_food:
         br end_create_food
 
     end_create_food:
-    ldw t4, 20(sp)      ; Restore t4
-    ldw t3, 16(sp)      ; Restore t3
-    ldw t2, 12(sp)      ; Restore t2
-    ldw t1, 8(sp)       ; Restore t1
-    ldw t0, 4(sp)       ; Restore t0
     ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 24     ; Pop registers
+    addi sp, sp, 4     ; Pop registers
 
     ret  ; Return from create_food
 ; END:create_food
@@ -328,17 +304,10 @@ create_food:
 
 ; BEGIN:hit_test
 hit_test:
-    addi v0, zero, 0        ; v0 = 0 (default return value)
-
-    addi sp, sp, -32        ; Push registers onto stack
+    addi sp, sp, -4        ; Push registers onto stack
     stw ra, 0(sp)           ; Save ra
-    stw t0, 4(sp)           ; Save t0
-    stw t1, 8(sp)           ; Save t1
-    stw t2, 12(sp)          ; Save t2
-    stw t3, 16(sp)          ; Save t3
-    stw t4, 20(sp)          ; Save t4
-    stw t5, 24(sp)          ; Save t5
-    stw t6, 28(sp)          ; Save t6
+
+    addi v0, zero, 0        ; v0 = 0 (default return value)
 
     ; Load the current direction and head position
     ldw t0, HEAD_X(zero)  ; Load head's x-coordinate
@@ -409,15 +378,8 @@ hit_test:
         br exit_hit_test
 
 exit_hit_test:
-    ldw t6, 28(sp)      ; Restore t6
-    ldw t5, 24(sp)      ; Restore t5
-    ldw t4, 20(sp)      ; Restore t4
-    ldw t3, 16(sp)      ; Restore t3
-    ldw t2, 12(sp)      ; Restore t2
-    ldw t1, 8(sp)       ; Restore t1
-    ldw t0, 4(sp)       ; Restore t0
     ldw ra, 0(sp)       ; Restore ra
-    addi sp, sp, 32     ; Pop registers
+    addi sp, sp, 4     ; Pop registers
 
     ret
 ; END:hit_test
@@ -425,6 +387,9 @@ exit_hit_test:
 
 ; BEGIN:get_input
 get_input:
+    addi sp, sp, -4
+    stw ra, 0(sp)       ; Save ra
+
     addi v0, zero, 0            ; v0 = 0 (default return value)
     
     ; Read the edgecapture register to find out which buttons were pressed
@@ -522,20 +487,17 @@ get_input:
         br get_input_done           ; end procedure
 
     get_input_done:
+        ldw ra, 0(sp)       ; Restore ra
+        addi sp, sp, 4     ; Pop registers
+
         ret
 ; END:get_input
 
 
 ; BEGIN:draw_array
 draw_array:
-    addi sp, sp, -28            ; Push ra, t0, t1, t2, t3
-    stw ra, 0(sp)               ; Save ra
-    stw t0, 4(sp)               ; Save t0
-    stw t1, 8(sp)               ; Save t1
-    stw t2, 12(sp)              ; Save t2
-    stw t3, 16(sp)              ; Save t3
-    stw a0, 20(sp)              ; Save a0
-    stw a1, 24(sp)              ; Save a1
+    addi sp, sp, -4     ; Push ra
+    stw ra, 0(sp)       ; Save ra
 
 
     addi t0, zero, 0            ; t0 = 0 (counter for cells) -> t0 is the cell number
@@ -560,14 +522,8 @@ draw_array:
         br loop_array               ; Loop back to loop_array
 
     end_draw_array:
-        ldw a1, 24(sp)      ; Restore a1
-        ldw a0, 20(sp)      ; Restore a0
-        ldw t3, 16(sp)      ; Restore t3
-        ldw t2, 12(sp)      ; Restore t2
-        ldw t1, 8(sp)       ; Restore t1
-        ldw t0, 4(sp)       ; Restore t0
         ldw ra, 0(sp)       ; Restore ra
-        addi sp, sp, 28     ; Pop registers
+        addi sp, sp, 4     ; Pop registers
 
         ret    
 ; END:draw_array
@@ -575,6 +531,9 @@ draw_array:
 
 ; BEGIN:move_snake
 move_snake:
+    addi sp, sp, -4     ; Push ra
+    stw ra, 0(sp)       ; Save ra
+
     head:
         ldw t0, HEAD_X(zero)  ; Load head's x-coordinate
         ldw t1, HEAD_Y(zero)  ; Load head's y-coordinate
@@ -675,14 +634,17 @@ move_snake:
         br end_move_snake    
 
     end_move_snake:
+        ldw ra, 0(sp)       ; Restore ra
+        addi sp, sp, 4     ; Pop registers
+
         ret
 ; END:move_snake
 
 
 ; BEGIN:save_checkpoint
 save_checkpoint:
-        ldw t0, SCORE(zero) ; Load the score into register t0
-        addi t1, zero, 10   ; t1 = minimum checkpoint score
+    ldw t0, SCORE(zero) ; Load the score into register t0
+    addi t1, zero, 10   ; t1 = minimum checkpoint score
 
     checkpoint_mod:
         blt t0, t1, checkpoint_check ; If score < 10, don't save checkpoint
@@ -715,6 +677,7 @@ save_checkpoint:
         addi t0, zero, 0        ; t0 = 0 (counter for cells) -> t0 is the cell number
         addi t1, zero, 0        ; t1 = 0 (counter for GSA index)
         addi t2, zero, NB_CELLS ; t2 = NB_CELLS
+
     checkpoint_gsa:
         ldw t3, GSA(t0)             ; Load the value at the GSA index
         stw t3, CP_GSA(t0)          ; Store the value in the checkpoint GSA
@@ -778,31 +741,29 @@ blink_score:
 
 	addi t7, zero, 3
 
-	blink_score_loop:
-	; break if blinked enough times
-	beq t7, zero, blink_score_end
+	blink_loop:
+        beq t7, zero, blink_score_end
 
-	; clear the score
-	stw zero, SEVEN_SEGS(zero)
-	stw zero, SEVEN_SEGS+4(zero)
-	stw zero, SEVEN_SEGS+8(zero)
-	stw zero, SEVEN_SEGS+12(zero)
+        ; clear the score
+        stw zero, SEVEN_SEGS(zero)
+        stw zero, SEVEN_SEGS+4(zero)
+        stw zero, SEVEN_SEGS+8(zero)
+        stw zero, SEVEN_SEGS+12(zero)
 
-	call wait
+        call wait
 
-	; display the score
-	call display_score
+        call display_score
 
-	call wait
+        call wait
 
-	addi t7, t7, -1
-	jmpi blink_score_loop
+        addi t7, t7, -1
+        br blink_loop
 
 	blink_score_end:
-	ldw ra, 0(sp)
-	addi sp, sp, 4
+        ldw ra, 0(sp)
+        addi sp, sp, 4
 
-	ret
+        ret
 ; END:blink_score
 
     digit_map:
