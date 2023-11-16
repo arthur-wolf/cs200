@@ -51,64 +51,68 @@ stw t0, LEDS+12(zero)
 
 ; BEGIN:main
 main:
-	stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
+	; checkpoint initialization
+	stw zero, CP_VALID(zero)
     
 	m_init_game:
-        call init_game           ; Initialize game state
+    	call init_game
 
 	m_game_loop:
-	    call wait 
-        call get_input    ; Get input from buttons
+		call wait
+    	call get_input
 
-        addi t0, zero, 5                    ; t0 = 5 (checkpoint button pressed)
-        beq v0, t0, m_restore_checkpoint    ; if v0 = 5, restore checkpoint
+		addi t0, zero, 5
+		beq v0, t0, m_game_restore
 
 	m_game_continue:
-        call hit_test           ; Test collisions
+		call hit_test
+    	addi t0, zero, 1
+		beq v0, t0, m_game_increment_score
+		addi t0, zero, 2
+		beq v0, t0, m_init_game;
 
-        addi t0, zero, 1                    ; t0 = 1
-        beq v0, t0, m_game_increment_score  ; if v0 = 1, (food was eaten)
+		addi a0, zero, 0
+		call move_snake
 
-        addi a0, zero, 0            ; a0 = 0 (food wasn't eaten)
-        beq v0, zero, move_snake    ; if v0 = 0, (food wasn't eaten)
-
-        ; v0 = 2 (collision detected) -> game over
-        call wait               ; Wait for increased visibility
-        call m_init_game        ; Game Over
-
-    m_clear_and_draw:
-        call clear_leds     ; Clear the display
-        call draw_array     ; Draw the game state
-        
-        br m_game_loop      ; Loop back to m_game_loop
+	m_clear_and_draw:
+		call clear_leds
+		call draw_array
+    
+		br m_game_loop
 
 	m_game_increment_score:
-        ldw t0, SCORE(zero) ; Load the score into register t0
-        addi t0, t0, 1      ; Increment score
-        stw t0, SCORE(zero) ; Store the new score
+		ldw t0, SCORE(zero)
+		addi t0, t0, 1
+		stw t0, SCORE(zero)
 
-        call display_score  ; Display the new score
+		call display_score
 
-        addi a0, zero, 1    ; a0 = 1 (food was eaten)
-        call move_snake     ; Move the snake
+		addi a0, zero, 1
+		call move_snake
 
-        call create_food        ; Create a new piece of food
-        call save_checkpoint    ; Save checkpoint
+		call create_food
 
-        addi t0, zero, 0                ; t0 = 0
-        beq v0, t0, m_clear_and_draw    ; if v0 = 0, display the game (checkpoint was not saved)
-        addi t0, zero, 1                ; t0 = 1
-        beq v0, t0, m_game_blink        ; if v0 = 1, blink the score (checkpoint was saved)
+		call save_checkpoint
 
-	m_game_blink:
-        call blink_score        ; Blink the score
-        br m_clear_and_draw     ; Loop back to m_clear_and_draw
+		addi t0, zero, 0
+		beq v0, t0, m_clear_and_draw
+		addi t0, zero, 1
+		beq v0, t0, m_blink
+
+	m_blink:
+		call blink_score
+		br m_clear_and_draw
 	
-	m_restore_checkpoint:
-        call restore_checkpoint     ; Restore checkpoint
-        beq v0, zero, m_game_loop   ; if v0 = 0, loop back to game_loop (checkpoint was not restored)
-        addi t0, zero, 1            ; t0 = 1
-        beq v0, t0, m_game_blink    ; if v0 = 1, blink the score (checkpoint was restored)
+
+	m_game_restore:
+		call restore_checkpoint
+
+		beq v0, zero, m_game_loop
+		call clear_leds
+		call draw_array
+		addi t0, zero, 1
+		beq v0, t0, m_blink
+
 ; END:main
 
 
@@ -419,7 +423,6 @@ get_input:
 
     is_checkpoint:
 		addi v0, zero, 5                ; set v0 to 5 to indicate checkpoint
-        stw v0, GSA(t7)               ; update direction to checkpoint
         br get_input_done               ; skip other checks and end procedure
 
     check_left:
@@ -511,7 +514,7 @@ draw_array:
         br draw_pixel               ; Otherwise, draw the pixel
 
     draw_pixel:
-        srai a0, t0, 3              ; a0 = t0 / 8 (find the LED array index) -> a0 = x coordinate
+        srli a0, t0, 3              ; a0 = t0 / 8 (find the LED array index) -> a0 = x coordinate
         andi a1, t0, 0x7            ; a1 = t0 & 7 (bit position in the register) -> a1 = y coordinate
         call set_pixel              ; Set the pixel at the calculated coordinates
         br next_pixel               ; Continue to the next pixel
