@@ -45,6 +45,8 @@
 
 ; initialize stack pointer
 addi    sp, zero, LEDS
+addi t0, zero, 0xff
+stw t0, LEDS+12(zero)
 
 
 ; BEGIN:main
@@ -52,16 +54,12 @@ main:
 
 	stw zero, CP_VALID(zero)    ; Set checkpoint to invalid
     
-	game_init:
+	m_init_game:
     call init_game           ; Initialize game state
 
 	game_loop:
 
-	addi t0, zero, 1    ; t0 = 1
-	slli t0, t0, 22    ; t0 = 0b1000000000000000000000
-	game_wait:
-	addi t0, t0, -1   ; t0--
-	bne t0, zero, game_wait ; wait for 0.5 seconds
+	call wait 
 
     call get_input    ; Get input from buttons
 
@@ -73,7 +71,7 @@ main:
     addi t0, zero, 1    ; t0 = 1
 	beq v0, t0, game_up   ; if v0 = 1, food was eaten
 	addi t0, zero, 2    ; t0 = 2
-	beq v0, t0, game_init;  if v0 = 2, game over
+	beq v0, t0, m_init_game;  if v0 = 2, game over
 
 	addi a0, zero, 0    ; a0 = 0
 	call move_snake    ; Move the snake
@@ -105,10 +103,7 @@ main:
 
 	game_restore:
 	call restore_checkpoint   ; Restore checkpoint
-	addi t0, zero, 0    ; t0 = 0
-	beq v0, t0, game_loop   ; if v0 = 0, loop back to game_loop
-	call clear_leds  ; Clear the display
-	call draw_array ; Draw the game state
+	beq v0, zero, game_loop   ; if v0 = 0, loop back to game_loop
 	addi t0, zero, 1    ; t0 = 1
 	beq v0, t0, game_blink      ; if v0 = 1, blink the score
 ; END:main
@@ -778,46 +773,36 @@ restore_checkpoint:
 
 ; BEGIN:blink_score
 blink_score:
-    addi sp, sp, -16            ; Push ra, t0, t1
-    stw ra, 0(sp)               ; Save ra
-    stw t0, 4(sp)               ; Save t0
-    stw t1, 8(sp)               ; Save t1
-    stw t2, 12(sp)              ; Save t2
+	addi sp, sp, -4
+	stw ra, 0(sp)
 
-    ldw t0, SEVEN_SEGS(zero)    ; Load the address of the 7-segment display
-    addi t1, zero, 0            ; t1 = 0 (loop counter)   
+	addi t7, zero, 3
 
-    blink_loop:                     ; blinks 3 times
-        addi t2, zero, 3            ; t2 = 3
-        beq t1, t2, end_blink_score  ; If t1 is 3, end the loop
-        call blink                  ; Blink the score once
-        addi t1, t1, 1              ; Increment loop counter
-        br blink_loop               ; Loop back to blink_loop
+	blink_score_loop:
+	; break if blinked enough times
+	beq t7, zero, blink_score_end
 
-    blink:                      ; blinks once
-        call turn_displays_off  ; Turn off all displays
-        call wait               ; Wait for 1 second
-        call turn_displays_on   ; Turn on all displays
-        call wait               ; Wait for 1 second
-        ret                     ; Return from the procedure
-    
-    turn_displays_off:
-        stw zero, 0(t0)     ; Turn off the 1st display
-        stw zero, 4(t0)     ; Turn off the 2nd display
-        stw zero, 8(t0)     ; Turn off the 3rd display
-        stw zero, 12(t0)    ; Turn off the 4th display
+	; clear the score
+	stw zero, SEVEN_SEGS(zero)
+	stw zero, SEVEN_SEGS+4(zero)
+	stw zero, SEVEN_SEGS+8(zero)
+	stw zero, SEVEN_SEGS+12(zero)
 
-    turn_displays_on:
-        call display_score  ; Display the score
+	call wait
 
-    end_blink_score:
-        ldw t2, 12(sp)      ; Restore t2
-        ldw t1, 8(sp)       ; Restore t1
-        ldw t0, 4(sp)       ; Restore t0
-        ldw ra, 0(sp)        ; Restore ra
-        addi sp, sp, 16     ; Pop ra, t0, t1
+	; display the score
+	call display_score
 
-        ret                 ; Return from the procedure
+	call wait
+
+	addi t7, t7, -1
+	jmpi blink_score_loop
+
+	blink_score_end:
+	ldw ra, 0(sp)
+	addi sp, sp, 4
+
+	ret
 ; END:blink_score
 
     digit_map:
