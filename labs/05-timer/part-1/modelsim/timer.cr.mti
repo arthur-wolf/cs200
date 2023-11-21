@@ -1,0 +1,20 @@
+../testbench/timer_tb.vhd {1 {vcom -work work -2002 -explicit -cover s -stats=none /home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/testbench/timer_tb.vhd
+Model Technology ModelSim ALTERA vcom 10.4d Compiler 2015.12 Dec 30 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package std_logic_textio
+-- Compiling entity timer_tb
+-- Compiling architecture testbench of timer_tb
+
+} {} {}} ../vhdl/timer.vhd {1 {vcom -work work -2002 -explicit -cover s -stats=none /home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/vhdl/timer.vhd
+Model Technology ModelSim ALTERA vcom 10.4d Compiler 2015.12 Dec 30 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity timer
+-- Compiling architecture synth of timer
+
+} {} {}}

@@ -1,0 +1,93 @@
+m255
+K4
+z0
+13
+cModel Technology
+Etimer
+Z0 w1580915411
+Z1 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
+Z2 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z3 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+Z4 d/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/modelsim
+Z5 8/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/vhdl/timer.vhd
+Z6 F/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/vhdl/timer.vhd
+l0
+L5
+Vc4KO]2N6g4f<7f5946];=3
+!s100 S940ASUddNF;Y<O5FiVln0
+Z7 OV;C;10.4d;61
+32
+Z8 !s110 1580915512
+!i10b 1
+Z9 !s108 1580915512.000000
+Z10 !s90 -reportprogress|300|-work|work|-2002|-explicit|-cover|s|-stats=none|/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/vhdl/timer.vhd|
+Z11 !s107 /home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/vhdl/timer.vhd|
+!i113 1
+Z12 !s102 -cover s
+Z13 o-work work -2002 -explicit -cover s
+Z14 tExplicit 1
+Asynth
+R1
+R2
+R3
+DEx4 work 5 timer 0 22 c4KO]2N6g4f<7f5946];=3
+l44
+L21
+VFF0`DeCb1Tc_d>d<FaXko1
+!s100 P:hGclAo9RH>eM>16UC@e1
+R7
+32
+R8
+!i10b 1
+R9
+R10
+R11
+!i113 1
+R12
+R13
+R14
+Etimer_tb
+Z15 w1578581695
+Z16 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
+R1
+R2
+R3
+R4
+Z17 8/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/testbench/timer_tb.vhd
+Z18 F/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/testbench/timer_tb.vhd
+l0
+L7
+VK?dJkSn6_:=64b>3Pz?^<3
+!s100 FDa[l?z0FX9ZJEbMO2EVZ3
+R7
+32
+R8
+!i10b 1
+R9
+Z19 !s90 -reportprogress|300|-work|work|-2002|-explicit|-cover|s|-stats=none|/home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/testbench/timer_tb.vhd|
+Z20 !s107 /home/dorgon/Documents/EPFL/TA/ArchSoc/lab_rework/1-timer/project_template/testbench/timer_tb.vhd|
+!i113 1
+R12
+R13
+R14
+Atestbench
+R16
+R1
+R2
+R3
+Z21 DEx4 work 8 timer_tb 0 22 K?dJkSn6_:=64b>3Pz?^<3
+l96
+L10
+Z22 V3zz`e^lDY:R8oB;3jDc1W1
+Z23 !s100 `1T?=BKB^Of;cNE:lhzgY1
+R7
+32
+R8
+!i10b 1
+R9
+R19
+R20
+!i113 1
+R12
+R13
+R14
