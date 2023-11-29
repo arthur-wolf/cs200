@@ -18,7 +18,48 @@ entity PC is
 end PC;
 
 architecture synth of PC is
-    
+    constant RESET_ADDRESS : std_logic_vector := x"0000_0000";
+
+    signal s_curr : std_logic_vector(31 downto 0);
+    signal s_next : std_logic_vector(31 downto 0);
 begin
-    
+    addr <= "0000_0000_0000_0000" & s_current(15 downto 2) & "00";
+
+    flipflop : process(clk, reset_n)
+    begin
+        if reset_n = '0' then
+            s_curr <= RESET_ADDRESS;
+        else
+            if rising_edge(clk) then
+                if(en = '1') then
+                    s_current <= s_next;
+                end if;
+            end if;
+        end if;
+    end process flipflop;
+
+    compute : process(sel_a, sel_imm, sel_ihandler, add_imm, imm, a, s_curr)
+    begin
+        if (add_imm = '1') then
+            -- result of the addition of the current PC and the imm input
+            s_next <= std_logic_vector(signed(s_current) + signed(imm));
+
+        elsif(sel_imm = '1') then
+            -- imm input shifted to left by 2 bits on 32 bits
+            s_next <= "0000_0000_0000_00" & (imm << 2);
+
+        elsif(sel_a = '1') then
+            -- imm input on 32 bits
+            s_next <= x"0000" & a;
+
+        elsif (sel_ihandler = '1') then
+            -- interrupt handler address on 32 bits
+            s_next <= x"0000_0004";
+
+        else
+            -- PC + 4
+            s_next <= std_logic_vector(unsigned(s_current) + to_unsigned(4, 32));
+        end if;
+    end process compute;
+
 end synth;
