@@ -23,7 +23,7 @@ architecture synth of PC is
     signal s_curr : std_logic_vector(31 downto 0);
     signal s_next : std_logic_vector(31 downto 0);
 begin
-    addr <= "0000_0000_0000_0000" & s_current(15 downto 2) & "00";
+    addr <= "0000_0000_0000_0000" & s_curr(15 downto 2) & "00";
 
     flipflop : process(clk, reset_n)
     begin
@@ -32,7 +32,7 @@ begin
         else
             if rising_edge(clk) then
                 if(en = '1') then
-                    s_current <= s_next;
+                    s_curr <= s_next;
                 end if;
             end if;
         end if;
@@ -42,11 +42,11 @@ begin
     begin
         if (add_imm = '1') then
             -- result of the addition of the current PC and the imm input
-            s_next <= std_logic_vector(signed(s_current) + signed(imm));
+            s_next <= std_logic_vector(signed(s_curr) + signed(imm));
 
         elsif(sel_imm = '1') then
             -- imm input shifted to left by 2 bits on 32 bits
-            s_next <= "0000_0000_0000_00" & (imm << 2);
+            s_next <= "0000_0000_0000_00" & imm & "00";
 
         elsif(sel_a = '1') then
             -- imm input on 32 bits
@@ -58,7 +58,7 @@ begin
 
         else
             -- PC + 4
-            s_next <= std_logic_vector(unsigned(s_current) + to_unsigned(4, 32));
+            s_next <= std_logic_vector(unsigned(s_curr) + to_unsigned(4, 32));
         end if;
     end process compute;
 
