@@ -15,6 +15,56 @@ stw t0, LFSR(zero)
 
 ; WRITE YOUR CODE AND CONSTANT DEFINITIONS HERE
 
+main: 
+
+    addi sp, zero, 0x2000         ; initialize stack pointer
+
+    ;---------------- Timer of period 100ms ----------------
+    addi s0, zero, 1
+    add t1, zero, zero                  ; t1 = the "real" counter
+    add t2, zero, zero                  ; t2 = the internal counter
+    addi t3, zero, 0b1000
+	slli t3, t3, 15
+    addi t3, t3, 0b011110100010010      ; t3 = 100ms
+
+    loop:
+        ldw t4, BUTTON+4(zero)          ; t4 = button value
+        and t4, t4, s0
+        bne t4, s0, continue            ; if button is not pressed, go to continue
+
+        addi sp, sp, -8
+        stw t1, 0(sp)
+        stw t3, 4(sp)
+        call spend_time
+        ldw t1, 0(sp)
+        ldw t3, 4(sp)
+        addi sp, sp, 8
+
+		stw zero, BUTTON+4(zero)        ; reset button value
+		addi t1, t1, 9 
+
+        continue:
+            addi t2, t2, 1              ; increment internal counter
+            bne t2, t3, loop            ; if internal counter != 100ms, go to loop
+
+            add t2, zero, zero          ; reset internal counter
+            addi t1, t1, 1              ; increment "real" counter
+            add a0, t1, zero            ; display the counter
+
+            addi sp, sp, -16
+            stw t1, 0(sp)
+            stw t2, 4(sp)
+            stw t3, 8(sp)
+            stw t4, 12(sp)
+            call display  
+            ldw t1, 0(sp)
+            ldw t2, 4(sp)
+            ldw t3, 8(sp)  
+            ldw t4, 12(sp)
+            addi sp, sp, 16
+            br loop           
+
+
 ; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ; DO NOT CHANGE ANYTHING BELOW THIS LINE
 ; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
