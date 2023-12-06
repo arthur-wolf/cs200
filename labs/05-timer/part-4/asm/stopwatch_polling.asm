@@ -15,55 +15,46 @@ stw t0, LFSR(zero)
 
 ; WRITE YOUR CODE AND CONSTANT DEFINITIONS HERE
 
-main: 
+.equ STACK_START, 0x1FFF
 
-    addi sp, zero, 0x2000         ; initialize stack pointer
+main:
+	addi sp, zero, STACK_START          ; initializing the stack pointer 
+	addi s7, zero, 0                    ; s7 is the internal register for the timer 
+	add a0, s7, zero                    ; a0 is the argument for the display function
+	call display                        ; displaying the initial value of the timer
 
-    ;---------------- Timer of period 100ms ----------------
-    addi s0, zero, 1
-    add t1, zero, zero                  ; t1 = the "real" counter
-    add t2, zero, zero                  ; t2 = the internal counter
-    addi t3, zero, 0b1000
-	slli t3, t3, 15
-    addi t3, t3, 0b011110100010010      ; t3 = 100ms
+	set_counter: 
+		ldw t0, timer_period(zero)      ; t0 is the timer period
+		ldw t1, timer_period+4(zero)    ; t1 is the timer period
+		add s6, zero, t0                ; s6 is the counter
+		slli s6, s6, 16                 ; s6 is the counter
+		or s6, s6, t1
+	
+	loop_main:                          ; this function cost 11 cycles (auxiliary functions not counted)
+		addi s6, s6, -29 
+		blt s6, zero, increment_timer   ; if the counter is less than zero, we increment the timer
+		br check_button_0               ; otherwise we check if the button 0 is pressed
+		
+	increment_timer:
+		addi s7, s7, 1                  ; we increment the timer
+		add a0, s7, zero                ; a0 is the argument for the display function
+		call display                    ; displaying the new value of the timer
+		jmpi set_counter                ; we set the counter again
+	
+	
+	check_button_0:                     ; this function costs 18 + spend_time
+		ldw t0, BUTTON+4(zero)          ; t0 is the button
+		stw zero, BUTTON+4(zero)        ; we reset the button
+		addi t1, zero, 1                ; t1 is the mask
+		and t2, t0, t1                  ; t2 is the result of the mask
+		bne t2, t1, loop_main           ; if the button is not pressed, we go back to loop_main
+		call spend_time                 ; otherwise we spend time
+		addi s7, s7, 9                  ; we add 0.9 minute that corresponds approximately the time it takes to execute spend time
+		br loop_main                    ; we go back to loop_main
 
-    loop:
-        ldw t4, BUTTON+4(zero)          ; t4 = button value
-        and t4, t4, s0
-        bne t4, s0, continue            ; if button is not pressed, go to continue
-
-        addi sp, sp, -8
-        stw t1, 0(sp)
-        stw t3, 4(sp)
-        call spend_time
-        ldw t1, 0(sp)
-        ldw t3, 4(sp)
-        addi sp, sp, 8
-
-		stw zero, BUTTON+4(zero)        ; reset button value
-		addi t1, t1, 9 
-
-        continue:
-            addi t2, t2, 1              ; increment internal counter
-            bne t2, t3, loop            ; if internal counter != 100ms, go to loop
-
-            add t2, zero, zero          ; reset internal counter
-            addi t1, t1, 1              ; increment "real" counter
-            add a0, t1, zero            ; display the counter
-
-            addi sp, sp, -16
-            stw t1, 0(sp)
-            stw t2, 4(sp)
-            stw t3, 8(sp)
-            stw t4, 12(sp)
-            call display  
-            ldw t1, 0(sp)
-            ldw t2, 4(sp)
-            ldw t3, 8(sp)  
-            ldw t4, 12(sp)
-            addi sp, sp, 16
-            br loop           
-
+timer_period: 
+	.word 0x004C
+	.word 0x4B3F
 
 ; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ; DO NOT CHANGE ANYTHING BELOW THIS LINE
@@ -197,8 +188,6 @@ spend_time_loop:
 
     ret
 
-; v0 = a0 / a1
-; v1 = a0 % a1
 divide:
     add    v0, zero, zero
 divide_body:
