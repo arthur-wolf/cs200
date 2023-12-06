@@ -23,7 +23,7 @@ architecture synth of PC is
     signal s_curr : std_logic_vector(31 downto 0);
     signal s_next : std_logic_vector(31 downto 0);
 begin
-    addr <= "0000_0000_0000_0000" & s_curr(15 downto 2) & "00";
+    addr <= "0000000000000000" & s_curr(15 downto 2) & "00";
 
     flipflop : process(clk, reset_n)
     begin
@@ -46,7 +46,7 @@ begin
 
         elsif(sel_imm = '1') then
             -- imm input shifted to left by 2 bits on 32 bits
-            s_next <= "0000_0000_0000_00" & imm & "00";
+            s_next <= "00000000000000" & imm & "00";
 
         elsif(sel_a = '1') then
             -- imm input on 32 bits
