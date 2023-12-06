@@ -50,7 +50,7 @@ begin
                 end case;
                 rddata <= to_write;
             else
-                rddata <= (others => 'X');
+                rddata <= (others => 'Z');
             end if;
         end if;
         end if;
