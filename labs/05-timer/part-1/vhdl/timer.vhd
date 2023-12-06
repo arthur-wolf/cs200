@@ -26,7 +26,7 @@ architecture synth of timer is
 
 begin
 
-    next_counter <= s_counter - 1 when not( s_counter = (others => '0') ) else s_period;
+    next_counter <= (unsigned(s_counter) - 1) when not( unsigned(s_counter) = 0 ) else s_period;
 
     irq <= '1' when ( s_TO = '1' and s_ITO = '1' ) else '0';
 
@@ -42,9 +42,9 @@ begin
                     when "01" =>
                         to_write <= s_period;
                     when "10" =>
-                        to_write <= "0x00000000" or (s_ITO & s_CONT);
+                        to_write <= "00000000000000000000000000000000" or (s_ITO & s_CONT);
                     when "11" =>
-                        to_write <= "0x00000000" or (s_TO & s_RUN);
+                        to_write <= "00000000000000000000000000000000" or (s_TO & s_RUN);
                     when others =>
                         to_write <= (others => '0');
                 end case;
@@ -92,7 +92,7 @@ begin
             end if;
             if s_RUN = '1' then
                 s_counter <= next_counter;
-                if s_counter = (others => '0') then
+                if unsigned(s_counter) = 0 then
                     s_TO <= '1';
                     if s_CONT = '1' then
                         s_RUN <= '0';
