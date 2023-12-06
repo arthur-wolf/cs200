@@ -18,9 +18,135 @@ main:
 ; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     ; WRITE YOUR CONSTANT DEFINITIONS AND main HERE
+	.equ STACK_START, 0x1FFF
+	.equ COUNTER, 0x1F00
+	.equ FLAG, 0x1F04
+	addi sp, zero, STACK_START ; initialization of the stack
+	
+	; the timer counter
+	stw zero, COUNTER(zero) 
+	add a0, zero, zero
+	call display
+	
+	; flag to display the leds
+	addi t0, zero, 1
+	stw t0, FLAG(zero)
 
+	; start timer 
+	ldw t0, timer_period(zero)
+	ldw t1, timer_period+4(zero)    
+	add t2, zero, t0
+	slli t2, t2, 16
+	or t2, t2, t1 
+    ; addi t2, zero, 999
+	stw t2, TIMER+4(zero) ; we set period to 4 999 999 (to have 5 000 000 cycles) ~ 100 ms
+	addi t0, zero, 11
+	stw t0, TIMER+8(zero)
+
+	; allow interrupts
+	addi t0, zero, 1    ; set t0 to 1
+	wrctl status, t0    ; write 1 to the PIE to enable interrupts
+	addi t0, zero, 5    ; set t0 to 5 
+	wrctl ienable, t0   ; enable interrupts coming from button and timer
+	
+	; infinite loop
+	main_loop:
+		br main_loop
+		
 interrupt_handler:
     ; WRITE YOUR INTERRUPT HANDLER HERE
+	
+	addi sp, sp, -16 ; save the registers to the stack
+	stw t0, 0(sp)
+	stw t1, 4(sp)
+	stw t2, 8(sp)
+	stw ra, 12(sp)
+	
+	;make ipending register s1, saved value 
+	;check course
+	rdctl t0, ipending  ; read the ipending register to identify the source
+	addi t1, zero, 1    ; mask for first bit
+	and t2, t0, t1      ; first bit 1/0
+	addi sp, sp, -4
+	stw t0, 0(sp)
+	beq t2, t1, isr_timer ; call the corresponding routine
+
+	jump_to_timer_routine:
+	ldw t0, 0(sp)
+	addi sp, sp, 4
+	
+	addi t1, zero, 4 ; mask for third bit
+	and t2, t0, t1 ; first bit 1/0
+	beq t2, t1, isr_buttons ; call the corresponding routine
+    
+	jump_to_button_routine:
+	ldw t0, 0(sp)
+	ldw t1, 4(sp)
+	ldw t2, 8(sp)
+	ldw ra, 12(sp)
+	addi sp, sp, 16	; restore the registers from the stack
+
+	addi ea, ea, -4 ; correct the exception return address
+	eret 			; return from exception
+
+isr_timer: 
+	addi sp, sp, -4
+	stw ea, 0(sp)
+
+	ldw t0, COUNTER(zero)
+	addi t0, t0, 1
+	stw t0, COUNTER(zero)
+	add a0, t0, zero
+	stw zero, TIMER+12(zero) ; we set T0 to 0
+
+	ldw t1, FLAG(zero)
+	beq t1, zero, skip_timer
+
+	call display
+
+	skip_timer:
+	ldw ea, 0(sp)
+	addi sp, sp, 4
+	
+
+	jmpi jump_to_timer_routine
+
+isr_buttons: 
+	addi sp, sp, -4
+	stw ea, 0(sp)
+	
+	ldw t0, BUTTON+4(zero)
+	andi t0, t0, 1
+	stw zero, BUTTON+4(zero)
+	beq t0, zero, skip
+	
+	stw zero, FLAG(zero)
+
+	addi t0, zero, 1
+	wrctl ienable, t0 ; enable interrupts coming from button and timer
+
+	wrctl status, t0 ; write 1 to the PIE to enable interrupts
+	 
+	call spend_time
+	
+	wrctl status, zero
+	
+	addi t0, zero, 5
+	wrctl ienable, t0
+	
+	addi t0, zero, 1
+	stw t0, FLAG(zero) 
+	
+	skip:
+	ldw ea, 0(sp) 
+	addi sp, sp, 4
+	
+
+	jmpi jump_to_button_routine
+
+timer_period: 
+	.word 0x004C
+	.word 0x4B3F
 
 ; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 ; DO NOT CHANGE ANYTHING BELOW THIS LINE
