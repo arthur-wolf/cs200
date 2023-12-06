@@ -26,7 +26,7 @@ architecture synth of timer is
 
 begin
 
-    next_counter <= (unsigned(s_counter) - 1) when not( unsigned(s_counter) = 0 ) else s_period;
+    next_counter <= std_logic_vector(unsigned(s_counter) - 1) when not( unsigned(s_counter) = 0 ) else s_period;
 
     irq <= '1' when ( s_TO = '1' and s_ITO = '1' ) else '0';
 
